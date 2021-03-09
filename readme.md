@@ -21,6 +21,8 @@ Use ^help to get a list of all commands. Most commands have aliases. You can fin
 | advice | fortune_cookie | Get fortune-cookie-esque advice |
 | friends_quote | fq | Random Friends quote |
 | taylor_swift_quote | tsq | Random Taylor Swift quote |
+| stock_guess | sg | The bot picks a random stock and you guess the value of 1yr change,market cap, pe, or forward pe |
+| guess | g | Answer a stock question |
 | chess_stats username | chess | Get stats about *username* on chess.com |
 | ping | get_ping | Get bot ping |
 | get_code | code | Get the code for this bot |
