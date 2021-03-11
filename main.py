@@ -4,6 +4,7 @@ from discord.ext import commands
 from keep_alive import keep_alive
 from wyr import questions
 from ticker_list import tickers
+from replit import db
 
 load_dotenv()
 
@@ -28,6 +29,33 @@ async def on_message(message):
         if message.author != bot.user:
             await message.channel.send('poggers')
     await bot.process_commands(message)
+
+@bot.event
+async def on_command(ctx):
+    if len(db.prefix(ctx.command))>0:
+        db[ctx.command] += 1
+    else:
+        db[ctx.command] = 1
+
+@bot.command(aliases=['cfrq', 'frq'])
+async def command_frequency(ctx):
+    '''
+    Get the amount of times that each command has been run
+    '''
+    keys = db.keys()
+    key_list = []
+    for key in keys:
+        key_list.append([key, db[key]])
+    key_list = sorted(key_list, key=lambda x: x[1], reverse=True)
+    command = ''
+    times_run = ''
+    for key in key_list[0:10]:
+        command += f"{key[0]}\n"
+        times_run += f"{key[1]}\n"
+    embed = discord.Embed(title='Most Run Commands')
+    embed.add_field(name='Command', value=command, inline=True)
+    embed.add_field(name='Times Run', value=times_run, inline=True)
+    await ctx.send(embed=embed)
 
 bot.current_trivia_answer = ''
 
@@ -489,9 +517,9 @@ async def wikipedia_most_viewed(ctx):
     articles = r.json()['items'][0]['articles']
     page = ''
     views = ''
-    for article in articles[0:12]:
+    for article in articles[0:15]:
         if article['article'] not in ['Main_Page', 'Special:Search']:
-            page += f"{article['article']}\n"
+            page += f"[{article['article']}]({'https://wikipedia.org/wiki/' + article['article']})\n"
             views += f"{article['views']:,}\n"
     embed = discord.Embed(title='Most Viewed Wikipedia Pages Yesterday')
     embed.add_field(name='Page Title', value=page, inline=True)

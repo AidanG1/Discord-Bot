@@ -37,3 +37,4 @@ Use ^help to get a list of all commands. Most commands have aliases. You can fin
 | would_you_rather_list | wyrl, wyrx | Get a would you rather and exclude questions from a list  |
 | wikipedia_most_visited | wiki | Get the most visited wikipedia pages yesterday |
 | get_aliases | aliases, alias, docs | Get a list of command aliases |
+| command_frequency | frq, cfrq | Get the amount of times that each command has been run |
