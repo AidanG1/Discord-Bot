@@ -512,7 +512,6 @@ async def wikipedia_most_viewed(ctx):
     headers = {
         'User-Agent': 'Discord Bot/0.1 requests',
     }
-
     r = requests.get(url, headers=headers)
     articles = r.json()['items'][0]['articles']
     page = ''
@@ -521,10 +520,25 @@ async def wikipedia_most_viewed(ctx):
         if article['article'] not in ['Main_Page', 'Special:Search']:
             page += f"[{article['article']}]({'https://wikipedia.org/wiki/' + article['article']})\n"
             views += f"{article['views']:,}\n"
-    embed = discord.Embed(title='Most Viewed Wikipedia Pages Yesterday')
-    embed.add_field(name='Page Title', value=page, inline=True)
-    embed.add_field(name='Views', value=views, inline=True)
-    await ctx.send(embed=embed)
+
+    with open('slurs_to_ban.txt') as f:
+        text = f.read() 
+        embed = discord.Embed(title='Most Viewed Wikipedia Pages Yesterday')
+        words_to_ban = text.split(',')
+        for word in words_to_ban:
+            word = word.strip()
+            wtr = word[0]
+            for i in range(len(word) - 1):
+                wtr += '*'
+            page = page.replace(word,  wtr, 1)
+            word = word.title()
+            wtr = word[0]
+            for i in range(len(word) - 1):
+                wtr += '*'
+            page = page.replace(word, wtr, 1)
+        embed.add_field(name='Page Title', value=page, inline=True)
+        embed.add_field(name='Views', value=views, inline=True)
+        await ctx.send(embed=embed)
 
 keep_alive()
 bot.run(TOKEN)
