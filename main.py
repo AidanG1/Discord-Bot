@@ -5,6 +5,7 @@ from keep_alive import keep_alive
 from wyr import questions
 from ticker_list import tickers
 from replit import db
+import dateutil.relativedelta
 
 load_dotenv()
 
@@ -501,14 +502,7 @@ async def would_you_rather_list(ctx, remove_list):
     remove_list.append(question['id'])
     await ctx.send('^wyrl ' + str(rl).replace(' ', ''))
 
-
-@bot.command(aliases=['wiki'])
-async def wikipedia_most_viewed(ctx):
-    '''
-    Get the most visited wikipedia pages yesterday
-    '''
-    today = datetime.datetime.today() - datetime.timedelta(hours=32)
-    url = f"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}"
+def get_wiki(ctx, url, title, count):
     headers = {
         'User-Agent': 'Discord Bot/0.1 requests',
     }
@@ -516,14 +510,14 @@ async def wikipedia_most_viewed(ctx):
     articles = r.json()['items'][0]['articles']
     page = ''
     views = ''
-    for article in articles[0:15]:
+    for article in articles[0:count]:
         if article['article'] not in ['Main_Page', 'Special:Search']:
             page += f"[{article['article']}]({'https://wikipedia.org/wiki/' + article['article']})\n"
             views += f"{article['views']:,}\n"
 
     with open('slurs_to_ban.txt') as f:
-        text = f.read() 
-        embed = discord.Embed(title='Most Viewed Wikipedia Pages Yesterday')
+        text = f.read()
+        embed = discord.Embed(title=title)
         words_to_ban = text.split(',')
         for word in words_to_ban:
             word = word.strip()
@@ -538,7 +532,36 @@ async def wikipedia_most_viewed(ctx):
             page = page.replace(word, wtr, 1)
         embed.add_field(name='Page Title', value=page, inline=True)
         embed.add_field(name='Views', value=views, inline=True)
+        return embed
+
+
+@bot.command(aliases=['wiki'])
+async def wikipedia_most_viewed(ctx, count='15'):
+    '''
+    Get the most visited wikipedia pages yesterday
+    '''
+    today = datetime.datetime.today() - datetime.timedelta(hours=32)
+    url = f"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}"
+    count = int(count)
+    embed = get_wiki(ctx, url, f"Most Viewed Wikipedia Pages Over {today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}", count)
+    try:
         await ctx.send(embed=embed)
+    except discord.HTTPException:
+        await ctx.send('Message too long to send')
+
+@bot.command(aliases=['wikim'])
+async def wikipedia_most_monthly(ctx, count='15'):
+    '''
+    Get the most visited wikipedia pages last month
+    '''
+    today = datetime.datetime.today() - datetime.timedelta(hours=32) - dateutil.relativedelta.relativedelta(months=1)
+    url = f"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/{today.strftime('%Y')}/{today.strftime('%m')}/all-days"
+    count = int(count)
+    embed = get_wiki(ctx, url, f"Most Viewed Wikipedia Pages Over {today.strftime('%Y')}/{today.strftime('%m')}", count)
+    try:
+        await ctx.send(embed=embed)
+    except discord.HTTPException:
+        await ctx.send('Message too long to send')
 
 keep_alive()
 bot.run(TOKEN)
