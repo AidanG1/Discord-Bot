@@ -29,7 +29,9 @@ Use ^help to get a list of all commands. Most commands have aliases. You can fin
 | yang |  | yin |
 | yin |  | yang |
 | pong |  | ping |
+| nyt_popular | nyt | Get the real time most popular New York Times article |
 | bball slug | basketball_stocks, basketballstocks | Get the price of a player on basketballstocks.com using their *slug* |
+| nba_player name | nbap | Get nba player advanced stats by *name* |
 | text_gen text | ai_text_gen, ai_text_generation, ai | Generate a paragraph from *text* using AI |
 | sentiment_analysis text | sentiment, emotion, feeling, feel | Sentiment analysis of *text* |
 | trendy_reactions | react, reaction_images | Get a list of classic reaction photos |
