@@ -16,6 +16,7 @@ Use ^help to get a list of all commands. Most commands have aliases. You can fin
 | astronomy_picture | apod, space, space_picture | Get the NASA astronomy picture of the day |
 | recent_xkcd | cxkcd, rxkcd | Get the most recent xkcd |
 | random_xkcd | xkcd | Get a random xkcd |
+| yo_mama | ym, yomama, yomomma | Get a random yo mama joke, potentially offensive or nsfw because I didn't write these |
 | number_fact number | num, num_fact, number | Get a random fact about *number* |
 | bread_pun | bp | Random bread pun |
 | advice | fortune_cookie | Get fortune-cookie-esque advice |

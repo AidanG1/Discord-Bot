@@ -485,6 +485,21 @@ async def bball(ctx, player):
     await ctx.send(
         f"{result['name']}'s current price is ${result['current_price']}")
 
+@bot.command(aliases=['ym', 'yomama', 'yomomma'])
+async def yo_mama(ctx):
+    '''
+    Random yo mama joke. I didn't write these so some are offensive or nsfw
+    '''
+    url = 'https://raw.githubusercontent.com/rdegges/yomomma-api/master/jokes.txt'
+    r = requests.get(url)
+    result = r.text
+    jokes = result.split('\n')
+    joke = random.choice(jokes)
+    while joke[0:18] == 'Yo mama is so dark':
+        joke = random.choice(jokes)
+    await ctx.send(joke)
+
+
 @bot.command(aliases=['nbap'])
 async def nba_player(ctx, *args):
     '''
@@ -601,36 +616,51 @@ async def would_you_rather_list(ctx, remove_list):
 
 
 def get_wiki(ctx, url, title, count):
+    count = int(count)
+    if count < 3:
+        count = 3
     headers = {
         'User-Agent': 'Discord Bot/0.1 requests',
     }
     r = requests.get(url, headers=headers)
     articles = r.json()['items'][0]['articles']
-    page = ''
-    views = ''
-    for article in articles[0:count]:
+    pages = ['']
+    views = ['']
+    i = 0
+    for article in articles[:count]:
+        if len(pages[i]) + len(views[i]) > 1024:
+            i += 1
+            pages.append('')
+            views.append('')
         if article['article'] not in ['Main_Page', 'Special:Search']:
-            page += f"[{article['article']}]({'https://wikipedia.org/wiki/' + article['article']})\n"
-            views += f"{article['views']:,}\n"
+            pages[i] += f"[{article['article']}]({'https://wikipedia.org/wiki/' + article['article']})\n"
+            views[i] += f"{article['views']:,}\n"
 
     with open('slurs_to_ban.txt') as f:
         text = f.read()
-        embed = discord.Embed(title=title)
+        embeds = []
+        for index in pages:
+            embeds.append(discord.Embed(title=title, color=discord.Color.blurple()))
         words_to_ban = text.split(',')
         for word in words_to_ban:
-            word = word.strip()
-            wtr = word[0]
-            for i in range(len(word) - 1):
-                wtr += '*'
-            page = page.replace(word, wtr, 1)
-            word = word.title()
-            wtr = word[0]
-            for i in range(len(word) - 1):
-                wtr += '*'
-            page = page.replace(word, wtr, 1)
-        embed.add_field(name='Page Title', value=page, inline=True)
-        embed.add_field(name='Views', value=views, inline=True)
-        return embed
+            for page in pages:
+                word = word.strip()
+                wtr = word[0]
+                for i in range(len(word) - 1):
+                    wtr += '*'
+                page = page.replace(word, wtr, 1)
+                word = word.title()
+                wtr = word[0]
+                for i in range(len(word) - 1):
+                    wtr += '*'
+                page = page.replace(word, wtr, 1)
+        for i in range(len(pages)):
+            embeds[i].add_field(name='Page Title', value=pages[i], inline=True)
+            embeds[i].add_field(name='Views', value=views[i], inline=True)
+        parts = len(embeds)
+        for i in range(len(embeds)):
+            embeds[i].title += f', part {i+1} of {parts}'
+        return embeds
 
 
 @bot.command(aliases=['wiki'])
@@ -640,15 +670,12 @@ async def wikipedia_most_viewed(ctx, count='15'):
     '''
     today = datetime.datetime.today() - datetime.timedelta(hours=32)
     url = f"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}"
-    count = int(count)
-    embed = get_wiki(
+    embeds = get_wiki(
         ctx, url,
         f"Most Viewed Wikipedia Pages Over {today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}",
         count)
-    try:
+    for embed in embeds:
         await ctx.send(embed=embed)
-    except discord.HTTPException:
-        await ctx.send('Message too long to send')
 
 
 @bot.command(aliases=['wikim'])
@@ -659,15 +686,12 @@ async def wikipedia_most_monthly(ctx, count='15'):
     today = datetime.datetime.today() - datetime.timedelta(
         hours=32) - dateutil.relativedelta.relativedelta(months=1)
     url = f"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/{today.strftime('%Y')}/{today.strftime('%m')}/all-days"
-    count = int(count)
-    embed = get_wiki(
+    embeds = get_wiki(
         ctx, url,
         f"Most Viewed Wikipedia Pages Over {today.strftime('%Y')}/{today.strftime('%m')}",
         count)
-    try:
+    for embed in embeds:
         await ctx.send(embed=embed)
-    except discord.HTTPException:
-        await ctx.send('Message too long to send')
 
 
 keep_alive()
