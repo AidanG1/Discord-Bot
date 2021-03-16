@@ -30,6 +30,8 @@ Use ^help to get a list of all commands. Most commands have aliases. You can fin
 | yang |  | yin |
 | yin |  | yang |
 | pong |  | ping |
+| bruhCounter_enabled | bce | Admin only command to change whether the bruh counter is enabled |
+| bruhCount | bc | Get top 10 bruh counts |
 | nyt_popular | nyt | Get the real time most popular New York Times article |
 | bball slug | basketball_stocks, basketballstocks | Get the price of a player on basketballstocks.com using their *slug* |
 | nba_player name | nbap | Get nba player advanced stats by *name* |

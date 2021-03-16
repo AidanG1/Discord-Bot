@@ -30,6 +30,16 @@ async def on_message(message):
     if message.content.lower() == 'poggers':
         if message.author != bot.user:
             await message.channel.send(message.content)
+    if 'bruh' in message.content.lower():
+        author = message.author
+        if author != bot.user:
+            db_name = 'bruh_' + str(author).replace('#','')
+            if len(db.prefix(db_name)) > 0:
+                db[db_name] += 1
+            else:
+                db[db_name] = 1
+            if db['bruh_counter_enabled'] == True:
+                await message.channel.send(f'Bruh counter for {author} is now {db[db_name]}')
     await bot.process_commands(message)
 
 
@@ -65,7 +75,8 @@ async def command_frequency(ctx):
     keys = db.keys()
     key_list = []
     for key in keys:
-        key_list.append([key, db[key]])
+        if 'bruh_' not in key and '#' not in key:
+            key_list.append([key, db[key]])
     key_list = sorted(key_list, key=lambda x: x[1], reverse=True)
     command = ''
     times_run = ''
@@ -240,6 +251,43 @@ async def change_presence(ctx, type, *args):
         await bot.change_presence(activity=discord.Activity(
             type=discord.ActivityType.watching, name=phrase))
 
+@bot.command(aliases=['bce'])
+@commands.has_role('Admins')
+async def bruhCounter_enabled(ctx):
+    '''
+    Admin only command to change whether the bruh counter is enabled
+    '''
+    if len(db.prefix('bruh_counter_enabled')) == 0:
+        db['bruh_counter_enabled'] = True
+    else:
+        db['bruh_counter_enabled'] =  not db['bruh_counter_enabled']
+        await ctx.send(f"The bruh counter is now {db['bruh_counter_enabled']}")
+
+@bot.command(aliases=['bc'])
+async def bruhCount(ctx):
+    '''
+    Get bruh count
+    '''
+    message = await ctx.send('loading...')
+    keys = db.keys()
+    filtered_keys = [key for key in keys if key[0:5]=='bruh_']
+    bruh_keys = []
+    for i in range(len(filtered_keys)):
+        if '#' not in filtered_keys[i]:
+            bruh_keys.append([filtered_keys[i], db[filtered_keys[i]]])
+            bruh_keys = sorted(bruh_keys, key=lambda x: x[1], reverse=True)[0:10]
+    user = ''
+    bruhs = ''
+    for key in bruh_keys:
+        user += f"{key[0][5:]}\n"
+        bruhs += f"{key[1]}\n"
+    embed = discord.Embed(title='User Bruh Count',color=discord.Color.gold())
+    embed.add_field(name='User', value=user, inline=True)
+    embed.add_field(name='Bruh Count', value=bruhs, inline=True)
+    await ctx.send(embed=embed)
+    await message.delete()
+        
+        
 
 @bot.command(aliases=['chuck', 'norris'])
 async def chuck_norris(ctx):
@@ -300,7 +348,7 @@ async def recent_xkcd(ctx):
     '''
     r = requests.get('https://xkcd.com/info.0.json')
     result = r.json()
-    embed = discord.Embed(title=result['title'],
+    embed = discord.Embed(title=f"{result['title']}: https://xkcd.com",
                           description=result['alt'],
                           color=discord.Color.teal())
     embed.set_image(url=result['img'])
@@ -316,7 +364,7 @@ async def random_xkcd(ctx):
     rand_num = random.randrange(1, r.json()['num'])
     r = requests.get(f'https://xkcd.com/{rand_num}/info.0.json')
     result = r.json()
-    embed = discord.Embed(title=result['title'],
+    embed = discord.Embed(title=f"{result['title']}: https://xkcd.com/{result['num']}",
                           description=result['alt'],
                           color=discord.Color.dark_teal())
     embed.set_image(url=result['img'])
@@ -483,7 +531,7 @@ async def bball(ctx, player):
     r = requests.get(url)
     result = r.json()
     await ctx.send(
-        f"{result['name']}'s current price is ${result['current_price']}")
+        f"{result['name']}'s current price is ${result['current_price']}: https://basketballstocks.com/p/{result['slug']} ")
 
 @bot.command(aliases=['ym', 'yomama', 'yomomma'])
 async def yo_mama(ctx):
@@ -520,7 +568,7 @@ async def nba_player(ctx, *args):
     current_year = datetime.date.today().year - 1 # doesn't actually get current nba season
     combined_war_per_82 = result['war_mean_' + str(current_year) + '_BL']
     embed = discord.Embed(title=name, description=f'Team: {team}\n Status: {category}\nLast Year War Per 82: {round(float(combined_war_per_82), 2)}', color=discord.Color.purple())
-    embed.set_image(url=url)
+    embed.set_thumbnail(url=url)
     await ctx.send(embed=embed)
 
 
@@ -672,7 +720,7 @@ async def wikipedia_most_viewed(ctx, count='15'):
     url = f"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}"
     embeds = get_wiki(
         ctx, url,
-        f"Most Viewed Wikipedia Pages Over {today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}",
+        f"Most Viewed Wikipedia Pages On {today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}",
         count)
     for embed in embeds:
         await ctx.send(embed=embed)
@@ -692,6 +740,12 @@ async def wikipedia_most_monthly(ctx, count='15'):
         count)
     for embed in embeds:
         await ctx.send(embed=embed)
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send("That command does not exist. Use ^help to get a list of commands.")
+
 
 
 keep_alive()
