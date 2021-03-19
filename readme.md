@@ -22,6 +22,7 @@ Use ^help to get a list of all commands. Most commands have aliases. You can fin
 | get_code | code | Get the code for this bot |
 | guess | g | Answer a stock question |
 | kanye_west | kanye | Random Kanye West quote |
+| stock_outlook stock |  | Get a random outlook for *stock* |
 | number_fact number | num, num_fact, number | Get a random fact about *number* |
 | nba_player name | nbap | Get nba player advanced stats by *name* |
 | nyt_popular | nyt | Get the real time most popular New York Times article |

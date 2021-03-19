@@ -521,6 +521,27 @@ async def pong(ctx):
     '''
     await ctx.send('ping')
 
+@bot.command()
+async def stock_outlook(ctx, stock):
+    '''
+    Get an outlook for a stock. The outlook is randomly selected
+    '''
+    phrases = [
+        f'{stock} looks very overpriced',
+        f'{stock} is a great value right now',
+        f'{stock} to the moon',
+        f'There are bulls, there are bears, and then there are absolute failures which is what you are if you buy {stock}',
+        f'{stock} is not stonks',
+        f'{stock} is the next GameStop',
+        f"Can't stop won't stop {stock}stock",
+        f"I can't wait to lose all of my money on {stock}",
+        f"Puts on {stock}",
+        f"I wouldn't want {stock} if you paid me for it",
+        f"I would rather buy puts on {stock} that put food on my table",
+        f"If I didn't lose all my money on SHLD and BBI I would buy {stock}",
+    ]
+    await ctx.send('This is not financial advice: ' + random.choice(phrases))
+
 
 @bot.command(aliases=['basketballstocks', 'basketball_stocks'])
 async def bball(ctx, player):
@@ -595,7 +616,7 @@ async def sentiment_analysis(ctx, *args):
     '''
     Sentiment analysis of text
     '''
-    phrase = ''
+    phrase = ''''''
     for arg in args:
         phrase += arg + ' '
     message = await ctx.send('loading...')
@@ -741,10 +762,10 @@ async def wikipedia_most_monthly(ctx, count='15'):
     for embed in embeds:
         await ctx.send(embed=embed)
 
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandNotFound):
-        await ctx.send("That command does not exist. Use ^help to get a list of commands.")
+# @bot.event
+# async def on_command_error(ctx, error):
+#     if isinstance(error, commands.CommandNotFound):
+#         await ctx.send("That command does not exist. Use ^help to get a list of commands.")
 
 
 
