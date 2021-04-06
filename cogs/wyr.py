@@ -482,7 +482,7 @@ questions = [
 {'question': '''Would you rather have more money or more time?''', 'id': 481},
 {'question': '''Would you rather work more hours a day, but have longer weekends or work fewer hours a day with more workdays?''', 'id': 482},
 {'question': '''Would you rather live by “Hakuna Matata” or “YOLO”?''', 'id': 483},
-{'question': '''Would you rather talk like Yoda or breathe like Dark Vader for the rest of your life?''', 'id': 484},
+{'question': '''Would you rather talk like Yoda or breathe like Darth Vader for the rest of your life?''', 'id': 484},
 {'question': '''Would you rather eat only cheese for 1 year or not be able to eat cheese for 1 year?''', 'id': 485},
 {'question': '''Would rather have 100 duck-sized elephants or 1 elephant-sized duck?''', 'id': 486},
 {'question': '''Would you rather wear a clown wig or clown shoes every day?''', 'id': 487},

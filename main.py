@@ -8,7 +8,10 @@ load_dotenv()
 
 help_command = commands.DefaultHelpCommand(no_category='General Commands')
 
-bot = commands.Bot(command_prefix='^', help_command=help_command)
+intents = discord.Intents.default()
+intents.members = True
+
+bot = commands.Bot(command_prefix='^', help_command=help_command, intents=intents)
 
 TOKEN = os.getenv('TOKEN')
 
@@ -62,17 +65,18 @@ async def before_countdown_till_o_week():
 async def on_message(message):
     if message.content == 'test Rice bot':
         await message.channel.send('Testing 1 2 3!')
-    if message.content.lower() == 'poggers':
+    if message.content.lower().replace(' ', '').replace('*', '') .replace('_', '') == 'poggers':
         if message.author != bot.user:
             await message.channel.send(message.content)
-    if 'bruh' in message.content.lower():
+    bruh_count = message.content.lower().count('bruh')
+    if bruh_count > 0:
         author = message.author
         if author != bot.user:
             db_name = 'bruh_' + str(author).replace('#', '')
             if len(db.prefix(db_name)) > 0:
-                db[db_name] += 1
+                db[db_name] += bruh_count
             else:
-                db[db_name] = 1
+                db[db_name] = bruh_count
             if db['bruh_counter_enabled'] == True:
                 await message.channel.send(
                     f'Bruh counter for {author} is now {db[db_name]}')
@@ -173,6 +177,22 @@ async def bruhCounter_enabled(ctx):
         db['bruh_counter_enabled'] = not db['bruh_counter_enabled']
         await ctx.send(f"The bruh counter is now {db['bruh_counter_enabled']}")
 
+
+@bot.command(aliases=['rm'])
+async def role_members(ctx, role: discord.Role):
+    '''
+    Get the number of members in a role by @tting the role
+    '''
+    await ctx.send(f'The role {role.name} has {len(role.members)} members')
+
+@bot.command(aliases=['rmm'])
+async def role_members_multiple(ctx, role1: discord.Role, role2: discord.Role):
+    '''
+    Get the number who share 2 roles by @tting both of them
+    '''
+    role1_members = [member.name for member in role1.members]
+    role2_members = [member.name for member in role2.members]
+    await ctx.send(f'The roles {role1.name} and {role2.name} have {len(set(role1_members) & set(role2_members))} members in common')
 
 @bot.command(aliases=['bc'])
 async def bruhCount(ctx):
