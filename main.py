@@ -84,7 +84,10 @@ async def on_message(message):
             r = requests.get(api_link).json()['quoteSummary']['result'][0]
             current_price = r['price']['regularMarketPrice']['fmt']
             change_percent = r['price']['regularMarketChangePercent']['fmt']
-            market_cap = r['summaryDetail']['marketCap']['fmt']
+            if r['price']['quoteType'] == 'ETF':
+                market_cap = 'N/A'
+            else:
+                market_cap = r['summaryDetail']['marketCap']['fmt']
             fifty_day_sma = r['summaryDetail']['fiftyDayAverage']['fmt']
             two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage']['fmt']
             fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
