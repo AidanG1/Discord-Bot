@@ -11,23 +11,26 @@ help_command = commands.DefaultHelpCommand(no_category='General Commands')
 intents = discord.Intents.default()
 intents.members = True
 
-bot = commands.Bot(command_prefix='^', help_command=help_command, intents=intents)
+bot = commands.Bot(command_prefix='^',
+                   help_command=help_command,
+                   intents=intents)
 
 TOKEN = os.getenv('TOKEN')
 
 extensions = [
-	'cogs.ai_cog',
+    'cogs.ai_cog',
     'cogs.cool_cog',
     'cogs.games_cog',
+    'cogs.ping_yin_cog',
     'cogs.random_cog',
     'cogs.stocks_cog',
-	'cogs.wiki_cog',
-	'cogs.wyr_cog',
+    'cogs.wiki_cog',
+    'cogs.wyr_cog',
 ]
 
 if __name__ == '__main__':  # Ensures this is the file being ran
-	for extension in extensions:
-		bot.load_extension(extension)  # Loads every extension.
+    for extension in extensions:
+        bot.load_extension(extension)  # Loads every extension.
 
 
 @bot.event
@@ -38,14 +41,15 @@ async def on_ready():
     countdown_till_o_week.start()
 
 
-@tasks.loop(hours = 24)
+@tasks.loop(hours=24)
 async def countdown_till_o_week():
     message_channel = bot.get_channel(787069147359608848)
     o_week_date = datetime.date(2021, 8, 15)
     current_date = datetime.date.today()
     delta = o_week_date - current_date
     print(f'{abs(delta.days)} days until OwOweek!')
-    message = await message_channel.send(f'{abs(delta.days)} days until OwOweek!')
+    message = await message_channel.send(
+        f'{abs(delta.days)} days until OwOweek!')
     await message.add_reaction('1️:partying_face:')
     pce_channel = bot.get_channel(787069147359608848)
     # await pce_channel.invoke(bot.get_command('wikipedia_most_viewed'))
@@ -53,7 +57,7 @@ async def countdown_till_o_week():
 
 @countdown_till_o_week.before_loop
 async def before_countdown_till_o_week():
-    for _ in range(60*60*24):  # loop the whole day
+    for _ in range(60 * 60 * 24):  # loop the whole day
         dt_full = datetime.datetime.now()
         print(dt_full)
         if dt_full.hour == 14 and dt_full.minute == 00:  # 24 hour format
@@ -61,13 +65,30 @@ async def before_countdown_till_o_week():
             return
         await asyncio.sleep(30)
 
+
 @bot.event
 async def on_message(message):
     if message.content == 'test Rice bot':
         await message.channel.send('Testing 1 2 3!')
-    if message.content.lower().replace(' ', '').replace('*', '') .replace('_', '') == 'poggers':
+    if message.content.lower().replace(' ', '').replace('*', '').replace(
+            '_', '') == 'poggers':
         if message.author != bot.user:
             await message.channel.send(message.content)
+    if '$$$' in message.content:
+        split_message = message.content.split('$$$')[1:]
+        tickers = []
+        for split_mess in split_message:
+            tickers.append(split_mess.split(' ')[0])
+        for ticker in tickers:
+            api_link = f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail%2CpageViews%2CfinancialsTemplate&corsDomain=finance.yahoo.com'
+            r = requests.get(api_link).json()['quoteSummary']['result'][0]
+            current_price = r['price']['regularMarketPrice']['fmt']
+            change_percent = r['price']['regularMarketChangePercent']['fmt']
+            market_cap = r['summaryDetail']['marketCap']['fmt']
+            fifty_day_sma = r['summaryDetail']['fiftyDayAverage']['fmt']
+            two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage']['fmt']
+            fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
+            await message.channel.send(f'{ticker} is currently ${current_price} and is up {change_percent} today. The market cap is ${market_cap}. 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}.')
     bruh_count = message.content.lower().count('bruh')
     if bruh_count > 0:
         author = message.author
@@ -178,24 +199,8 @@ async def bruhCounter_enabled(ctx):
         await ctx.send(f"The bruh counter is now {db['bruh_counter_enabled']}")
 
 
-@bot.command(aliases=['rm'])
-async def role_members(ctx, role: discord.Role):
-    '''
-    Get the number of members in a role by @tting the role
-    '''
-    await ctx.send(f'The role {role.name} has {len(role.members)} members')
-
-@bot.command(aliases=['rmm'])
-async def role_members_multiple(ctx, role1: discord.Role, role2: discord.Role):
-    '''
-    Get the number who share 2 roles by @tting both of them
-    '''
-    role1_members = [member.name for member in role1.members]
-    role2_members = [member.name for member in role2.members]
-    await ctx.send(f'The roles {role1.name} and {role2.name} have {len(set(role1_members) & set(role2_members))} members in common')
-
 @bot.command(aliases=['bc'])
-async def bruhCount(ctx):
+async def bruhCount(ctx, count='10'):
     '''
     Get bruh count
     '''
@@ -207,28 +212,32 @@ async def bruhCount(ctx):
         if '#' not in filtered_keys[i]:
             bruh_keys.append([filtered_keys[i], db[filtered_keys[i]]])
             bruh_keys = sorted(bruh_keys, key=lambda x: x[1],
-                               reverse=True)[0:10]
+                               reverse=True)[0:int(count)]
     user = ''
     bruhs = ''
     for key in bruh_keys:
         user += f"{key[0][5:]}\n"
         bruhs += f"{key[1]}\n"
     embed = discord.Embed(title='User Bruh Count', color=discord.Color.gold())
-    embed.add_field(name='User', value=user, inline=True)
-    embed.add_field(name='Bruh Count', value=bruhs, inline=True)
-    await ctx.send(embed=embed)
+    if len(user) + len(bruhs) > 1024:
+        await ctx.send('Message too long. Decrease the count for the message to send.')
+    else:
+        embed.add_field(name='User', value=user, inline=True)
+        embed.add_field(name='Bruh Count', value=bruhs, inline=True)
+        await ctx.send(embed=embed)
     await message.delete()
 
 
-@bot.command(aliases=['get_ping'])
-async def ping(ctx):
+@bot.command(aliases=['mbc'])
+async def myBruhCount(ctx):
     '''
-    Get bot ping
+    Get your personal bruh count
     '''
-    channel_id = discord.utils.get(ctx.guild.channels, name='general').id
-    print(channel_id)
-    latency = bot.latency
-    await ctx.send(f'Latency: {round(latency, 4)} seconds')
+    message = await ctx.send('loading...')
+    db_key = 'bruh_' + str(ctx.message.author).replace('#', '')
+    value = db[db_key]
+    await ctx.send(f'The bruh count for {ctx.message.author} is {value}.')
+    await message.delete()
 
 
 @bot.command(aliases=['code'])
@@ -259,41 +268,25 @@ async def get_aliases(ctx):
         )
 
 
-@bot.command()
-async def yang(ctx):
+@bot.command(aliases=['rm'])
+async def role_members(ctx, role: discord.Role):
     '''
-    yin
+    Get the number of members in a role by @tting the role
     '''
-    await ctx.send('yin')
+    await ctx.send(f'The role {role.name} has {len(role.members)} members')
 
 
-@bot.command()
-async def yin(ctx):
+@bot.command(aliases=['rmm'])
+async def role_members_multiple(ctx, role1: discord.Role, role2: discord.Role):
     '''
-    yang
+    Get the number who share 2 roles by @tting both of them
     '''
-    await ctx.send('yang')
+    role1_members = [member.name for member in role1.members]
+    role2_members = [member.name for member in role2.members]
+    await ctx.send(
+        f'The roles {role1.name} and {role2.name} have {len(set(role1_members) & set(role2_members))} members in common'
+    )
 
-
-@bot.command()
-async def pong(ctx):
-    '''
-    ping
-    '''
-    await ctx.send('ping')
-
-
-@bot.command(aliases=['react', 'reaction_images'])
-async def trendy_reactions(ctx):
-    '''
-    Get a list of classic reaction photos
-    '''
-    reactions = ''
-    reactions += 'https://cdn.discordapp.com/attachments/787158737680597002/809995223261773864/20e.jpg' + '\nhttps://i.kym-cdn.com/photos/images/newsfeed/000/995/030/65e.jpg'
-    embed = discord.Embed(title='Reactions',
-                          description=reactions,
-                          color=discord.Color.orange())
-    await ctx.send(embed=embed)
 
 # @bot.event
 # async def on_command_error(ctx, error):

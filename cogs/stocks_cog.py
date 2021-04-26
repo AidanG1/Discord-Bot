@@ -80,7 +80,7 @@ class StockCommands(commands.Cog, name='Stock Commands'):
                 closeness = 'extremely close.'
             await ctx.send('Incorrect. You are ' + closeness)
         
-    @commands.command()
+    @commands.command(aliases=['so'])
     async def stock_outlook(self, ctx, stock):
         '''
         Get an outlook for a stock. The outlook is randomly selected

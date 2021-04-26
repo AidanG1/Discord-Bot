@@ -10,7 +10,7 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=['nyt'])
+    @commands.command(aliases=['nyt', 'nytp'])
     async def nyt_popular(self, ctx):
         '''
         Get the real time most popular New York Times article

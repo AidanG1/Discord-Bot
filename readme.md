@@ -34,6 +34,7 @@ Use ^help to get a list of all commands. Most commands have aliases. You can fin
 | recipe dish ingredients | cook | Get a random version of *dish* that contains *ingredients* |
 | sentiment_analysis text | sentiment, emotion, feeling, feel | Sentiment analysis of *text* |
 | stock_guess | sg | The bot picks a random stock and you guess the value of 1yr change,market cap, pe, or forward pe |
+| stock_outlook | so | Get an outlook for a stock. The outlook is randomly selected |
 | taylor_swift_quote | tsq | Random Taylor Swift quote |
 | text_gen text | ai_text_gen, ai_text_generation, ai | Generate a paragraph from *text* using AI |
 | trivia | trivia_question, triv | Get a random trivia question |

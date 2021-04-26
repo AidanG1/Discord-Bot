@@ -1,13 +1,12 @@
 import discord, requests, random
 from discord.ext import commands
 
+
 class RandomCommands(commands.Cog, name='Random Commands'):
     '''Random commands'''
-
     def __init__(self, bot):
         self.bot = bot
 
-    
     @commands.command(aliases=['tsq'])
     async def taylor_swift_quote(self, ctx):
         '''
@@ -18,8 +17,8 @@ class RandomCommands(commands.Cog, name='Random Commands'):
         quote = f'''"{result['quote']}" - Taylor Swift'''
         if len(quote) > 255:
             embed = discord.Embed(title='Taylor Swift Quote',
-                                description=quote,
-                                color=discord.Color.magenta())
+                                  description=quote,
+                                  color=discord.Color.magenta())
         else:
             embed = discord.Embed(title=quote, color=discord.Color.magenta())
         await ctx.send(embed=embed)
@@ -38,7 +37,6 @@ class RandomCommands(commands.Cog, name='Random Commands'):
             joke = random.choice(jokes)
         await ctx.send(joke)
 
-    
     @commands.command(aliases=['fortune_cookie'])
     async def advice(self, ctx):
         '''
@@ -48,23 +46,23 @@ class RandomCommands(commands.Cog, name='Random Commands'):
         result = r.json()['slip']['advice']
         await ctx.send(result)
 
-
     @commands.command(aliases=['fq'])
     async def friends_quote(self, ctx):
         '''
         Random Friends Quote
         '''
-        r = requests.get('https://friends-quotes-api.herokuapp.com/quotes/random')
+        r = requests.get(
+            'https://friends-quotes-api.herokuapp.com/quotes/random')
         result = r.json()
         quote = f'''"{result['quote']}" - {result['character']}'''
         if len(quote) > 255:
             embed = discord.Embed(title='Friends Quote',
-                                description=quote,
-                                color=discord.Color.green())
+                                  description=quote,
+                                  color=discord.Color.green())
         else:
             embed = discord.Embed(title=quote, color=discord.Color.green())
         await ctx.send(embed=embed)
-        
+
     @commands.command(aliases=['num', 'num_fact', 'number'])
     async def number_fact(self, ctx, number):
         '''
@@ -74,7 +72,6 @@ class RandomCommands(commands.Cog, name='Random Commands'):
         result = r.text
         await ctx.send(result)
 
-
     @commands.command(aliases=['bp'])
     async def bread_pun(self, ctx):
         '''
@@ -83,7 +80,7 @@ class RandomCommands(commands.Cog, name='Random Commands'):
         r = requests.get('https://my-bao-server.herokuapp.com/api/breadpuns')
         result = r.text
         await ctx.send(result)
-        
+
     @commands.command(aliases=['chuck', 'norris'])
     async def chuck_norris(self, ctx):
         '''
@@ -93,14 +90,13 @@ class RandomCommands(commands.Cog, name='Random Commands'):
         result = r.json()
         if len(result['value']) > 255:
             embed = discord.Embed(title='Chuck Norris Fact',
-                                description=result['value'],
-                                color=discord.Color.purple())
+                                  description=result['value'],
+                                  color=discord.Color.purple())
         else:
             embed = discord.Embed(title=result['value'],
-                                color=discord.Color.purple())
+                                  color=discord.Color.purple())
         embed.set_thumbnail(url=result['icon_url'])
         await ctx.send(embed=embed)
-
 
     @commands.command(aliases=['kanye'])
     async def kanye_west(self, ctx):
@@ -112,8 +108,8 @@ class RandomCommands(commands.Cog, name='Random Commands'):
         quote = f'''"{result['quote']}" - Kanye West'''
         if len(quote) > 255:
             embed = discord.Embed(title='Kanye West Quote',
-                                description=quote,
-                                color=discord.Color.green())
+                                  description=quote,
+                                  color=discord.Color.green())
         else:
             embed = discord.Embed(title=quote, color=discord.Color.green())
         await ctx.send(embed=embed)
@@ -136,8 +132,6 @@ class RandomCommands(commands.Cog, name='Random Commands'):
         except TypeError:
             await ctx.send('Enter an integer')
 
-
-
     @commands.command(aliases=['cook'])
     async def recipe(self, ctx, query, *args):
         '''
@@ -147,17 +141,30 @@ class RandomCommands(commands.Cog, name='Random Commands'):
         for arg in args:
             phrase += arg + ','
         message = await ctx.send('loading...')
-        r = requests.get(f'http://www.recipepuppy.com/api/?i={phrase}&q={query}')
+        r = requests.get(
+            f'http://www.recipepuppy.com/api/?i={phrase}&q={query}')
         result = random.choice(r.json()['results'])
         embed = discord.Embed(title=result['title'],
-                            url=result['href'],
-                            description=result['ingredients'],
-                            color=discord.Color.blue())
+                              url=result['href'],
+                              description=result['ingredients'],
+                              color=discord.Color.blue())
         if result['thumbnail'] != '':
             embed.set_thumbnail(url=result['thumbnail'])
         await ctx.send(embed=embed)
         await message.delete()
 
+    @commands.command(aliases=['react', 'reaction_images'])
+    async def trendy_reactions(self, ctx):
+        '''
+        Get a list of classic reaction photos
+        '''
+        reactions = ''
+        reactions += 'https://cdn.discordapp.com/attachments/787158737680597002/809995223261773864/20e.jpg' + '\nhttps://i.kym-cdn.com/photos/images/newsfeed/000/995/030/65e.jpg'
+        embed = discord.Embed(title='Reactions',
+                              description=reactions,
+                              color=discord.Color.orange())
+        await ctx.send(embed=embed)
+
 
 def setup(bot):
-	bot.add_cog(RandomCommands(bot))
+    bot.add_cog(RandomCommands(bot))
