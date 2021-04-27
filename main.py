@@ -80,18 +80,27 @@ async def on_message(message):
         for split_mess in split_message:
             tickers.append(split_mess.split(' ')[0])
         for ticker in tickers:
+            if len(ticker) == 0:
+                continue
+            ticker = ticker.replace(',', '').replace(';', '').replace('.', '').replace('-', '')
             api_link = f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail%2CpageViews%2CfinancialsTemplate&corsDomain=finance.yahoo.com'
             r = requests.get(api_link).json()['quoteSummary']['result'][0]
             current_price = r['price']['regularMarketPrice']['fmt']
             change_percent = r['price']['regularMarketChangePercent']['fmt']
-            if r['price']['quoteType'] == 'ETF':
+            if r['price']['regularMarketChangePercent']['raw'] < 0:
+                up_down = 'down'
+            else:
+                up_down = 'up'
+            if r['price']['quoteType'] in ['ETF', 'INDEX']:
                 market_cap = 'N/A'
             else:
                 market_cap = r['summaryDetail']['marketCap']['fmt']
             fifty_day_sma = r['summaryDetail']['fiftyDayAverage']['fmt']
             two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage']['fmt']
             fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
-            await message.channel.send(f'{ticker} is currently ${current_price} and is up {change_percent} today. The market cap is ${market_cap}. 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}.')
+            fifty_two_week_high = r['summaryDetail']['fiftyTwoWeekHigh']['fmt']
+            short_name = r['price']['shortName']
+            await message.channel.send(f'{short_name} ({ticker.upper()}) is currently ${current_price} and is {up_down} {change_percent} today. Their market cap is ${market_cap}, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.')
     bruh_count = message.content.lower().count('bruh')
     if bruh_count > 0:
         author = message.author
