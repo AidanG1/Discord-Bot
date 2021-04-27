@@ -68,12 +68,14 @@ async def before_countdown_till_o_week():
 
 @bot.event
 async def on_message(message):
-    if message.content == 'test Rice bot':
-        await message.channel.send('Testing 1 2 3!')
     if message.content.lower().replace(' ', '').replace('*', '').replace(
             '_', '') == 'poggers':
         if message.author != bot.user:
             await message.channel.send(message.content)
+            if len(db.prefix('poggers')) > 0:
+                db['poggers'] += 1
+            else:
+                db['poggers'] = 1
     if '$$$' in message.content:
         split_message = message.content.split('$$$')[1:]
         tickers = []
@@ -101,6 +103,10 @@ async def on_message(message):
             fifty_two_week_high = r['summaryDetail']['fiftyTwoWeekHigh']['fmt']
             short_name = r['price']['shortName']
             await message.channel.send(f'{short_name} ({ticker.upper()}) is currently ${current_price} and is {up_down} {change_percent} today. Their market cap is ${market_cap}, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.')
+            if len(db.prefix('three_dollar_stock')) > 0:
+                db['three_dollar_stock'] += 1
+            else:
+                db['three_dollar_stock'] = 1
     bruh_count = message.content.lower().count('bruh')
     if bruh_count > 0:
         author = message.author
@@ -125,7 +131,7 @@ async def on_command(ctx):
 
 
 @bot.command(aliases=['cfrq', 'frq'])
-async def command_frequency(ctx):
+async def command_frequency(ctx, count='10'):
     '''
     Get the amount of times that each command has been run
     '''
@@ -137,14 +143,18 @@ async def command_frequency(ctx):
     key_list = sorted(key_list, key=lambda x: x[1], reverse=True)
     command = ''
     times_run = ''
-    for key in key_list[0:10]:
+    for key in key_list[0:int(count)]:
         command += f"{key[0]}\n"
         times_run += f"{key[1]}\n"
-    embed = discord.Embed(title='Most Run Commands',
+    if len(command) + len(times_run) > 1024:
+        await ctx.send('Message too long. Decrease the count for the message to send.')
+    else:
+        embed = discord.Embed(title='Most Run Commands',
                           color=discord.Color.gold())
-    embed.add_field(name='Command', value=command, inline=True)
-    embed.add_field(name='Times Run', value=times_run, inline=True)
-    await ctx.send(embed=embed)
+        embed.add_field(name='Command', value=command, inline=True)
+        embed.add_field(name='Times Run', value=times_run, inline=True)
+        await ctx.send(embed=embed)
+    
 
 
 bot.current_trivia_answer = ''
@@ -230,10 +240,10 @@ async def bruhCount(ctx, count='10'):
     for key in bruh_keys:
         user += f"{key[0][5:]}\n"
         bruhs += f"{key[1]}\n"
-    embed = discord.Embed(title='User Bruh Count', color=discord.Color.gold())
     if len(user) + len(bruhs) > 1024:
         await ctx.send('Message too long. Decrease the count for the message to send.')
     else:
+        embed = discord.Embed(title='User Bruh Count', color=discord.Color.gold())
         embed.add_field(name='User', value=user, inline=True)
         embed.add_field(name='Bruh Count', value=bruhs, inline=True)
         await ctx.send(embed=embed)
