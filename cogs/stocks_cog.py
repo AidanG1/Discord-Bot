@@ -1,13 +1,13 @@
 import discord, requests, random
+from fake_useragent import UserAgent
 from discord.ext import commands
 from cogs.ticker_list import tickers
 
+
 class StockCommands(commands.Cog, name='Stock Commands'):
     '''Stock commands'''
-
     def __init__(self, bot):
         self.bot = bot
-    
 
     @commands.command(aliases=['sg'])
     async def stock_guess(self, ctx, indic_type):
@@ -17,8 +17,8 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         if indic_type.lower() in ['cap', 'mcap', 'market_cap', 'mktcap']:
             cnbc_type = 'mktcap'
         elif indic_type.lower() in [
-                'yragopricechangepct', 'pctch', 'changepct', '1yr', '1yrchange',
-                '1y'
+                'yragopricechangepct', 'pctch', 'changepct', '1yr',
+                '1yrchange', '1y'
         ]:
             cnbc_type = 'yragopricechangepct'
         elif indic_type.lower() in ['fpe', 'forwardpe', 'forward_pe']:
@@ -30,8 +30,8 @@ class StockCommands(commands.Cog, name='Stock Commands'):
             'https://quote.cnbc.com/quote-html-webservice/quote.htm?output=json&requestMethod=quick&symbols='
             + ticker)
         company_name = r.json()['QuickQuoteResult']['QuickQuote']['onAirName']
-        value = float(r.json()['QuickQuoteResult']['QuickQuote']['FundamentalData']
-                    [cnbc_type])
+        value = float(r.json()['QuickQuoteResult']['QuickQuote']
+                      ['FundamentalData'][cnbc_type])
         value_range = []
         value_range.append(value * 0.94)
         value_range.append(value)
@@ -45,7 +45,6 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         await ctx.send(
             f'Guess the current {indic_type} of {company_name} ({ticker}) (type ^g and then the value to guess)'
         )
-
 
     @commands.command(aliases=['g'])
     async def guess(self, ctx, value):
@@ -79,7 +78,7 @@ class StockCommands(commands.Cog, name='Stock Commands'):
             elif pct_off > 6:
                 closeness = 'extremely close.'
             await ctx.send('Incorrect. You are ' + closeness)
-        
+
     @commands.command(aliases=['so'])
     async def stock_outlook(self, ctx, stock):
         '''
@@ -99,8 +98,51 @@ class StockCommands(commands.Cog, name='Stock Commands'):
             f"I would rather buy puts on {stock} than put food on my table",
             f"If I didn't lose all my money on SHLD and BBI I would buy {stock}",
         ]
-        await ctx.send('This is not financial advice: ' + random.choice(phrases))
+        await ctx.send('This is not financial advice: ' +
+                       random.choice(phrases))
+
+    @commands.command(aliases=['yft'])
+    async def yahoo_finance_trending(self, ctx, count='10'):
+        '''
+        Get Yahoo Finance Trending stocks list
+        '''
+        message = await ctx.send('loading...')
+        r = requests.get(
+            f'https://query2.finance.yahoo.com/v1/finance/trending/US?count={count}'
+        ).json()['finance']['result'][0]['quotes']
+        quotes = [quote['symbol'] for quote in r]
+        yft_message = f'Top {count} trending items on Yahoo Finance: ' + ', '.join(
+            quotes)[:-2]
+        if len(yft_message) > 2000:
+            yft_message = 'Message is too long. Please decrease count and try again.'
+        await ctx.send(yft_message)
+        await message.delete()
+
+    @commands.command(aliases=['descrip', 'd'])
+    async def company_description(self, ctx, ticker):
+        '''
+        Get a summary of a company by ticker
+        '''
+        message = await ctx.send('loading...')
+        ua = UserAgent()
+        headers = {
+            'User-Agent': str(ua.chrome),
+            'referrer':
+            f'https://seekingalpha.com/symbol/{ticker}?source%3Dcontent_type%253Areact%257Csource%253Asearch-basic',
+            'sec-ch-ua':
+            '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin',
+            'accept-language':
+            'es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6'
+        }
+        r = requests.get(
+            f'https://seekingalpha.com/api/v3/symbol_data?fields[]=long_desc&slugs={ticker}',
+            headers=headers).json()
+        await ctx.send(r['data'][0]['attributes']['longDesc'])
+        await message.delete()
 
 
 def setup(bot):
-	bot.add_cog(StockCommands(bot))
+    bot.add_cog(StockCommands(bot))

@@ -44,5 +44,6 @@ Use ^help to get a list of all commands. Most commands have aliases. You can fin
 | would_you_rather | wyr | Get a would you rather |
 | would_you_rather_list | wyrl, wyrx | Get a would you rather and exclude questions from a list  |
 | yang |  | yin |
+| yahoo_finance_trending *count* | yft | Get Yahoo Finance Trending stocks list for *count* |
 | yin |  | yang |
 | yo_mama | ym, yomama, yomomma | Get a random yo mama joke, potentially offensive or nsfw because I didn't write these |

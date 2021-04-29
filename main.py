@@ -77,14 +77,17 @@ async def on_message(message):
             else:
                 db['poggers'] = 1
     if '$$$' in message.content:
+        loading_message = await message.channel.send('loading...')
         split_message = message.content.split('$$$')[1:]
         tickers = []
         for split_mess in split_message:
             tickers.append(split_mess.split(' ')[0])
+        ticker_messages = []
         for ticker in tickers:
             if len(ticker) == 0:
                 continue
-            ticker = ticker.replace(',', '').replace(';', '').replace('.', '').replace('-', '')
+            ticker = ticker.replace(',', '').replace(';', '').replace(
+                '.', '').replace('-', '').replace('?', '').replace('!', '')
             api_link = f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail%2CpageViews%2CfinancialsTemplate&corsDomain=finance.yahoo.com'
             r = requests.get(api_link).json()['quoteSummary']['result'][0]
             current_price = r['price']['regularMarketPrice']['fmt']
@@ -93,20 +96,39 @@ async def on_message(message):
                 up_down = 'down'
             else:
                 up_down = 'up'
-            if r['price']['quoteType'] in ['ETF', 'INDEX']:
+            if len(r['summaryDetail']['marketCap']) == 0:
                 market_cap = 'N/A'
             else:
                 market_cap = r['summaryDetail']['marketCap']['fmt']
             fifty_day_sma = r['summaryDetail']['fiftyDayAverage']['fmt']
-            two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage']['fmt']
+            two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage'][
+                'fmt']
             fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
             fifty_two_week_high = r['summaryDetail']['fiftyTwoWeekHigh']['fmt']
-            short_name = r['price']['shortName']
-            await message.channel.send(f'{short_name} ({ticker.upper()}) is currently ${current_price} and is {up_down} {change_percent} today. Their market cap is ${market_cap}, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.')
+            company_name = r['price']['longName']
+            ticker_messages.append(
+                f'{company_name} (**{ticker.upper()}**) is currently **${current_price}** and is {up_down} **{change_percent}** today. Their market cap is **${market_cap}**, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.'
+            )
             if len(db.prefix('three_dollar_stock')) > 0:
                 db['three_dollar_stock'] += 1
             else:
                 db['three_dollar_stock'] = 1
+        current_message = 0
+        messages_to_send = ['']
+        for ticker_message in ticker_messages:
+            if len(messages_to_send[current_message]) == 0:
+                messages_to_send[current_message] = ticker_message
+            elif len(ticker_message) + len(
+                    messages_to_send[current_message]) >= 2000:
+                messages_to_send.append(ticker_message)
+                current_message += 1
+            else:
+                messages_to_send[current_message] += '\n'
+                messages_to_send[current_message] += ticker_message
+        for message_to_send in messages_to_send:
+            await message.channel.send(message_to_send)
+        await loading_message.delete()
+
     bruh_count = message.content.lower().count('bruh')
     if bruh_count > 0:
         author = message.author
@@ -147,14 +169,14 @@ async def command_frequency(ctx, count='10'):
         command += f"{key[0]}\n"
         times_run += f"{key[1]}\n"
     if len(command) + len(times_run) > 1024:
-        await ctx.send('Message too long. Decrease the count for the message to send.')
+        await ctx.send(
+            'Message too long. Decrease the count for the message to send.')
     else:
         embed = discord.Embed(title='Most Run Commands',
-                          color=discord.Color.gold())
+                              color=discord.Color.gold())
         embed.add_field(name='Command', value=command, inline=True)
         embed.add_field(name='Times Run', value=times_run, inline=True)
         await ctx.send(embed=embed)
-    
 
 
 bot.current_trivia_answer = ''
@@ -241,9 +263,11 @@ async def bruhCount(ctx, count='10'):
         user += f"{key[0][5:]}\n"
         bruhs += f"{key[1]}\n"
     if len(user) + len(bruhs) > 1024:
-        await ctx.send('Message too long. Decrease the count for the message to send.')
+        await ctx.send(
+            'Message too long. Decrease the count for the message to send.')
     else:
-        embed = discord.Embed(title='User Bruh Count', color=discord.Color.gold())
+        embed = discord.Embed(title='User Bruh Count',
+                              color=discord.Color.gold())
         embed.add_field(name='User', value=user, inline=True)
         embed.add_field(name='Bruh Count', value=bruhs, inline=True)
         await ctx.send(embed=embed)
