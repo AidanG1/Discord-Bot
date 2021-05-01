@@ -83,6 +83,7 @@ async def on_message(message):
         for split_mess in split_message:
             tickers.append(split_mess.split(' ')[0])
         ticker_messages = []
+        sending_message_boolean = False
         for ticker in tickers:
             if len(ticker) == 0:
                 continue
@@ -93,45 +94,50 @@ async def on_message(message):
                 else:
                     break
             api_link = f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail%2CpageViews%2CfinancialsTemplate&corsDomain=finance.yahoo.com'
-            print(ticker)
-            r = requests.get(api_link).json()['quoteSummary']['result'][0]
-            current_price = r['price']['regularMarketPrice']['fmt']
-            change_percent = r['price']['regularMarketChangePercent']['fmt']
-            if r['price']['regularMarketChangePercent']['raw'] < 0:
-                up_down = 'down'
-            else:
-                up_down = 'up'
-            if len(r['summaryDetail']['marketCap']) == 0:
-                market_cap = 'N/A'
-            else:
-                market_cap = r['summaryDetail']['marketCap']['fmt']
-            fifty_day_sma = r['summaryDetail']['fiftyDayAverage']['fmt']
-            two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage'][
-                'fmt']
-            fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
-            fifty_two_week_high = r['summaryDetail']['fiftyTwoWeekHigh']['fmt']
-            company_name = r['price']['longName']
-            ticker_messages.append(
-                f'{company_name} (**{ticker.upper()}**) is currently **${current_price}** and is {up_down} **{change_percent}** today. Their market cap is **${market_cap}**, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.'
-            )
+            r = requests.get(api_link).json()['quoteSummary']
+            if type(r['result']) == type(None):
+                await message.channel.send(r['error']['description'])
+            else:  
+                sending_message_boolean = True  
+                r=r['result'][0]
+                current_price = r['price']['regularMarketPrice']['fmt']
+                change_percent = r['price']['regularMarketChangePercent']['fmt']
+                if r['price']['regularMarketChangePercent']['raw'] < 0:
+                    up_down = 'down'
+                else:
+                    up_down = 'up'
+                if len(r['summaryDetail']['marketCap']) == 0:
+                    market_cap = 'N/A'
+                else:
+                    market_cap = r['summaryDetail']['marketCap']['fmt']
+                fifty_day_sma = r['summaryDetail']['fiftyDayAverage']['fmt']
+                two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage'][
+                    'fmt']
+                fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
+                fifty_two_week_high = r['summaryDetail']['fiftyTwoWeekHigh']['fmt']
+                company_name = r['price']['longName']
+                ticker_messages.append(
+                    f'{company_name} (**{ticker.upper()}**) is currently **${current_price}** and is {up_down} **{change_percent}** today. Their market cap is **${market_cap}**, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.'
+                )
             if len(db.prefix('three_dollar_stock')) > 0:
                 db['three_dollar_stock'] += 1
             else:
                 db['three_dollar_stock'] = 1
-        current_message = 0
-        messages_to_send = ['']
-        for ticker_message in ticker_messages:
-            if len(messages_to_send[current_message]) == 0:
-                messages_to_send[current_message] = ticker_message
-            elif len(ticker_message) + len(
-                    messages_to_send[current_message]) >= 2000:
-                messages_to_send.append(ticker_message)
-                current_message += 1
-            else:
-                messages_to_send[current_message] += '\n'
-                messages_to_send[current_message] += ticker_message
-        for message_to_send in messages_to_send:
-            await message.channel.send(message_to_send)
+        if sending_message_boolean:
+            current_message = 0
+            messages_to_send = ['']
+            for ticker_message in ticker_messages:
+                if len(messages_to_send[current_message]) == 0:
+                    messages_to_send[current_message] = ticker_message
+                elif len(ticker_message) + len(
+                        messages_to_send[current_message]) >= 2000:
+                    messages_to_send.append(ticker_message)
+                    current_message += 1
+                else:
+                    messages_to_send[current_message] += '\n'
+                    messages_to_send[current_message] += ticker_message
+            for message_to_send in messages_to_send:
+                await message.channel.send(message_to_send)
         await loading_message.delete()
 
     bruh_count = message.content.lower().count('bruh')
