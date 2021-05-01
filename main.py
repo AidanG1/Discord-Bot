@@ -69,7 +69,7 @@ async def before_countdown_till_o_week():
 @bot.event
 async def on_message(message):
     if message.content.lower().replace(' ', '').replace('*', '').replace(
-            '_', '') == 'poggers':
+            '_', '').replace('|','') == 'poggers':
         if message.author != bot.user:
             await message.channel.send(message.content)
             if len(db.prefix('poggers')) > 0:
@@ -78,7 +78,7 @@ async def on_message(message):
                 db['poggers'] = 1
     if '$$$' in message.content:
         loading_message = await message.channel.send('loading...')
-        split_message = message.content.split('$$$')[1:]
+        split_message = message.content.replace('\n',' ').split('$$$')[1:]
         tickers = []
         for split_mess in split_message:
             tickers.append(split_mess.split(' ')[0])
@@ -86,9 +86,14 @@ async def on_message(message):
         for ticker in tickers:
             if len(ticker) == 0:
                 continue
-            ticker = ticker.replace(',', '').replace(';', '').replace(
-                '.', '').replace('-', '').replace('?', '').replace('!', '')
+            characters_to_remove = [',', ';', '-', '?', '!', '.']
+            while True:
+                if ticker[-1] in characters_to_remove:
+                    ticker = ticker[:-1]
+                else:
+                    break
             api_link = f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail%2CpageViews%2CfinancialsTemplate&corsDomain=finance.yahoo.com'
+            print(ticker)
             r = requests.get(api_link).json()['quoteSummary']['result'][0]
             current_price = r['price']['regularMarketPrice']['fmt']
             change_percent = r['price']['regularMarketChangePercent']['fmt']
