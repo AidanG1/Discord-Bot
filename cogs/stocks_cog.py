@@ -1,5 +1,6 @@
 import discord, requests, random
 from fake_useragent import UserAgent
+from bs4 import BeautifulSoup
 from discord.ext import commands
 from cogs.ticker_list import tickers
 
@@ -117,11 +118,11 @@ class StockCommands(commands.Cog, name='Stock Commands'):
             yft_message = 'Message is too long. Please decrease count and try again.'
         await ctx.send(yft_message)
         await message.delete()
-
-    @commands.command(aliases=['descrip', 'd'])
-    async def company_description(self, ctx, ticker):
+    
+    @commands.command(aliases=['sad'])
+    async def sekking_alpha_description(self, ctx, ticker):
         '''
-        Get a summary of a company by ticker
+        Get the seeking alpha summary of a company by ticker
         '''
         message = await ctx.send('loading...')
         ua = UserAgent()
@@ -142,6 +143,41 @@ class StockCommands(commands.Cog, name='Stock Commands'):
             headers=headers).json()
         await ctx.send(r['data'][0]['attributes']['longDesc'])
         await message.delete()
+    
+    @commands.command(aliases=['cnbcd'])
+    async def cnbc_description(self, ctx, ticker):
+        '''
+        Get the cnbc description of a company by ticker
+        '''
+        message = await ctx.send('loading...')
+        r = requests.get('https://www.cnbc.com/quotes/' + ticker + '?tab=profile').text
+        soup = BeautifulSoup(r, 'html.parser')
+        try:
+            profile = soup.find(class_='CompanyProfile-summary').div.span.text
+            await ctx.send(profile)
+        except AttributeError:
+            await ctx.send(f'CNBC does not have a description for {ticker}')
+        await message.delete()
+
+    @commands.command(aliases=['wsjd', 'd'])
+    async def wsj_description(self, ctx, ticker):
+        '''
+        Get the WSJ description of a company by ticker
+        '''
+        message = await ctx.send('loading...')
+        ua = UserAgent()
+        headers = {
+            'User-Agent': str(ua.chrome)
+        }
+        r = requests.get(f'https://www.wsj.com/market-data/quotes/{ticker}/company-people', headers=headers).text
+        soup = BeautifulSoup(r, 'html.parser')
+        try:
+            profile = soup.find(class_='txtBody').text
+            await ctx.send(profile)
+        except AttributeError:
+            await ctx.send(f'WSJ does not have a description for {ticker}')
+        await message.delete()
+
 
 
 def setup(bot):
