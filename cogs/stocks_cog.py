@@ -120,7 +120,7 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         await message.delete()
     
     @commands.command(aliases=['sad'])
-    async def sekking_alpha_description(self, ctx, ticker):
+    async def seeking_alpha_description(self, ctx, ticker):
         '''
         Get the seeking alpha summary of a company by ticker
         '''
@@ -176,6 +176,62 @@ class StockCommands(commands.Cog, name='Stock Commands'):
             await ctx.send(profile)
         except AttributeError:
             await ctx.send(f'WSJ does not have a description for {ticker}')
+        await message.delete()
+
+    @commands.command(aliases=['tsd'])
+    async def the_street_description(self, ctx, ticker):
+        '''
+        Get the Street description of a company by ticker
+        '''
+        message = await ctx.send('loading...')
+        ua = UserAgent()
+        headers = {
+            'User-Agent': str(ua.chrome)
+        }
+        try:
+            r = requests.get(f'https://api.thestreet.com/marketdata/2/1?includePartnerContent=true&includeLatestNews=false&start=0&rt=true&max=10&filterContent=false&format=json&s={ticker}&includePartnerNews=false', headers=headers).json()['response']['quotes'][0]['description']
+            await ctx.send(r)
+        except AttributeError:
+            await ctx.send(f'The Street does not have a description for {ticker}')
+        await message.delete()
+
+    @commands.command(aliases=['msnd'])
+    async def msn_description(self, ctx, ticker):
+        '''
+        Get the MSN description of a company by ticker
+        '''
+        message = await ctx.send('loading...')
+        ua = UserAgent()
+        headers = {
+            'User-Agent': str(ua.chrome)
+        }
+        r = requests.get(f'https://www.msn.com/en-us/money/stockdetails/company?symbol={ticker}', headers=headers).text
+        soup = BeautifulSoup(r, 'html.parser')
+        try:
+            profile = soup.find(class_='company-description').text
+            await ctx.send(profile)
+        except AttributeError:
+            await ctx.send(f'MSN does not have a description for {ticker}')
+        await message.delete()
+
+    @commands.command(aliases=['investd'])
+    async def investopedia_description(self, ctx, ticker):
+        '''
+        Get the Investopedia description of a company by ticker
+        '''
+        message = await ctx.send('loading...')
+        ua = UserAgent()
+        headers = {
+            'User-Agent': str(ua.chrome)
+        }
+        r = requests.get(f'https://www.investopedia.com/markets/quote?tvwidgetsymbol={ticker}', headers=headers).text
+        soup = BeautifulSoup(r, 'html.parser')
+        # try:
+        print(soup.text)
+        profile = soup.find(class_='tv-symbol-profile__description').text
+        await ctx.send(profile)
+        # except AttributeError:
+            # await ctx.send(f'Investopedia does not have a description for {ticker}')
         await message.delete()
 
 

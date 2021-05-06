@@ -84,6 +84,13 @@ async def on_message(message):
             tickers.append(split_mess.split(' ')[0])
         ticker_messages = []
         sending_message_boolean = False
+        current_time = (datetime.datetime.now() - datetime.timedelta(hours=5)).time()
+        pre_market = False
+        post_market = False
+        if current_time <= datetime.time(9, 30):
+            pre_market = True
+        if current_time >= datetime.time(16):
+            post_market = True
         for ticker in tickers:
             if len(ticker) == 0:
                 continue
@@ -93,7 +100,7 @@ async def on_message(message):
                     ticker = ticker[:-1]
                 else:
                     break
-            api_link = f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail%2CpageViews%2CfinancialsTemplate&corsDomain=finance.yahoo.com'
+            api_link = f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail&corsDomain=finance.yahoo.com'
             r = requests.get(api_link).json()['quoteSummary']
             if type(r['result']) == type(None):
                 await message.channel.send(r['error']['description'])
@@ -116,8 +123,16 @@ async def on_message(message):
                 fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
                 fifty_two_week_high = r['summaryDetail']['fiftyTwoWeekHigh']['fmt']
                 company_name = r['price']['longName']
+                current_message = f'{company_name} (**{ticker.upper()}**) is currently **${current_price}** and is {up_down} **{change_percent}** today. Their market cap is **${market_cap}**, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.'
+                if r['price']['quoteType'] == 'EQUITY':
+                    if pre_market:
+                        pre_market_change = r['price']['preMarketChangePercent']['fmt']
+                        current_message += f' Their premarket change is **{pre_market_change}**.'
+                    elif post_market:
+                        post_market_change = r['price']['postMarketChangePercent']['fmt']
+                        current_message += f' Their after market change is **{post_market_change}**.'
                 ticker_messages.append(
-                    f'{company_name} (**{ticker.upper()}**) is currently **${current_price}** and is {up_down} **{change_percent}** today. Their market cap is **${market_cap}**, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.'
+                    current_message
                 )
             if len(db.prefix('three_dollar_stock')) > 0:
                 db['three_dollar_stock'] += 1
