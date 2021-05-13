@@ -76,30 +76,32 @@ async def on_message(message):
                 db['poggers'] += 1
             else:
                 db['poggers'] = 1
-    if '$$$' in message.content:
+    if '$$' in message.content:
         loading_message = await message.channel.send('loading...')
-        split_message = message.content.replace('\n',' ').split('$$$')[1:]
+        split_message = message.content.replace('\n',' ').split('$$')[1:]
         tickers = []
         for split_mess in split_message:
             tickers.append(split_mess.split(' ')[0])
         ticker_messages = []
         sending_message_boolean = False
-        current_time = (datetime.datetime.now() - datetime.timedelta(hours=5)).time()
-        pre_market = False
-        post_market = False
-        if current_time <= datetime.time(9, 30):
-            pre_market = True
-        if current_time >= datetime.time(16):
-            post_market = True
         for ticker in tickers:
             if len(ticker) == 0:
                 continue
-            characters_to_remove = [',', ';', '-', '?', '!', '.']
+            characters_to_remove = [',', ';', '-', '?', '!', '.', '*', '|']
             while True:
-                if ticker[-1] in characters_to_remove:
+                if ticker[-1] in characters_to_remove: #only want to remove from the end because some tickers have punctuation in them
                     ticker = ticker[:-1]
                 else:
                     break
+            if '$' in ticker:
+                split_ticker = ticker.split('$')
+                ticker = split_ticker[0]
+                graph_settings = split_ticker[1]
+                # numbers: 1: 10 day, 2: 2 day, 3: 5 day, 4: 1 month, 5: 2 month, 6: 3 month, 7: 6 month, 19: YTD, 8: 1 year, 9 : 2 year, 10: 3 year, 11: 4 year, 12: 5 year, 13: decade, 20: all time
+                frequency = 1
+                if len(graph_settings) != 0 and int(graph_settings) <= 3:
+                    frequency = 6
+                await message.channel.send(f'https://api.wsj.net/api/kaavio/charts/big.chart?nosettings=1&symb={ticker}&uf=0&type=4&size=2&style=350&freq={frequency}&entitlementtoken=0c33378313484ba9b46b8e24ded87dd6&time={graph_settings}&rand=1111111&compidx=aaaaa%3a0&ma=3&maval=50&lf=2&lf2=4&lf3=0&height=444&width=579&mocktick=1')
             api_link = f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail&corsDomain=finance.yahoo.com'
             r = requests.get(api_link).json()['quoteSummary']
             if type(r['result']) == type(None):
@@ -125,10 +127,10 @@ async def on_message(message):
                 company_name = r['price']['longName']
                 current_message = f'{company_name} (**{ticker.upper()}**) is currently **${current_price}** and is {up_down} **{change_percent}** today. Their market cap is **${market_cap}**, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.'
                 if r['price']['quoteType'] == 'EQUITY':
-                    if pre_market:
+                    if r['price']['marketState'] == 'PRE':
                         pre_market_change = r['price']['preMarketChangePercent']['fmt']
                         current_message += f' Their premarket change is **{pre_market_change}**.'
-                    elif post_market:
+                    elif 'POST' in r['price']['marketState']:
                         post_market_change = r['price']['postMarketChangePercent']['fmt']
                         current_message += f' Their after market change is **{post_market_change}**.'
                 ticker_messages.append(

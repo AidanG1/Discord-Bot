@@ -1,9 +1,17 @@
-import discord, requests, random
+import discord, requests, random, logging
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from cogs.ticker_list import tickers
 
+
+# import http.client
+# http.client.HTTPConnection.debuglevel = 1
+# logging.basicConfig()
+# logging.getLogger().setLevel(logging.DEBUG)
+# requests_log = logging.getLogger("requests.packages.urllib3")
+# requests_log.setLevel(logging.DEBUG)
+# requests_log.propagate = True
 
 class StockCommands(commands.Cog, name='Stock Commands'):
     '''Stock commands'''
@@ -233,6 +241,28 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         # except AttributeError:
             # await ctx.send(f'Investopedia does not have a description for {ticker}')
         await message.delete()
+
+    # @commands.command(aliases=['nd', 'qqqd'])
+    # async def nasdaq_description(self, ctx, ticker):
+    #     '''
+    #     Get the Nasdaq description of a company by ticker
+    #     '''
+    #     message = await ctx.send('loading...')
+    #     # ua = UserAgent()
+    #     headers = {
+    #         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36',
+    #         'origin': 'https://www.nasdaq.com',
+    #         'referer': 'https://www.nasdaq.com/',
+    #         'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="90", "Google Chrome";v="90"'
+    #     }
+    #     # try:
+    #     r = requests.get(f'https://api.nasdaq.com/api/company/{ticker}/company-profile'.replace('\u200b', ''), headers=headers).json()['data']['CompanyDescription']['value']
+    #     print(r)
+    #     await ctx.send(r)
+    #     # except AttributeError:
+    #         # await ctx.send(f'Nasdaq does not have a description for {ticker}')
+    #     await message.delete()
+
 
 
 
