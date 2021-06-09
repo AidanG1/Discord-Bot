@@ -3,6 +3,8 @@ from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
 from discord.ext import commands
 from cogs.ticker_list import tickers
+from cogs.parik_tweets import tweets
+from random import choice
 
 
 # import http.client
@@ -110,6 +112,19 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         await ctx.send('This is not financial advice: ' +
                        random.choice(phrases))
 
+    @commands.command(aliases=['parik'])
+    async def parik_patel_tweet(self,ctx):
+        '''Get a tweet from Dr. Parik Patel, BA, CFA, ACCA Esq.'''
+        tweet = '"' + choice(tweets) + '" - Dr. Parik Patel'
+        if len(tweet) > 255:
+            embed = discord.Embed(title='Dr. Parik Patel Quote',
+                                  description=tweet,
+                                  color=discord.Color.green())
+        else:
+            embed = discord.Embed(title=tweet, color=discord.Color.green())
+        embed.set_thumbnail(url='https://pbs.twimg.com/profile_images/1341030286386192386/TzEiVCaJ_400x400.jpg')
+        await ctx.send(embed=embed)
+
     @commands.command(aliases=['yft'])
     async def yahoo_finance_trending(self, ctx, count='10'):
         '''
@@ -134,6 +149,7 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         '''
         message = await ctx.send('loading...')
         ua = UserAgent()
+        ticker = ticker.replace('$','')
         headers = {
             'User-Agent': str(ua.chrome),
             'referrer':
@@ -158,6 +174,7 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         Get the cnbc description of a company by ticker
         '''
         message = await ctx.send('loading...')
+        ticker = ticker.replace('$','')
         r = requests.get('https://www.cnbc.com/quotes/' + ticker + '?tab=profile').text
         soup = BeautifulSoup(r, 'html.parser')
         try:
@@ -177,11 +194,15 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         headers = {
             'User-Agent': str(ua.chrome)
         }
+        ticker = ticker.replace('$','')
         r = requests.get(f'https://www.wsj.com/market-data/quotes/{ticker}/company-people', headers=headers).text
         soup = BeautifulSoup(r, 'html.parser')
         try:
             profile = soup.find(class_='txtBody').text
-            await ctx.send(profile)
+            n = 1999
+            message_chunks = [profile[i:i+n] for i in range(0, len(profile), n)]
+            for chunk in message_chunks:
+                await ctx.send(chunk)
         except AttributeError:
             await ctx.send(f'WSJ does not have a description for {ticker}')
         await message.delete()
@@ -213,6 +234,7 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         headers = {
             'User-Agent': str(ua.chrome)
         }
+        ticker = ticker.replace('$','')
         r = requests.get(f'https://www.msn.com/en-us/money/stockdetails/company?symbol={ticker}', headers=headers).text
         soup = BeautifulSoup(r, 'html.parser')
         try:
@@ -232,6 +254,7 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         headers = {
             'User-Agent': str(ua.chrome)
         }
+        ticker = ticker.replace('$','')
         r = requests.get(f'https://www.investopedia.com/markets/quote?tvwidgetsymbol={ticker}', headers=headers).text
         soup = BeautifulSoup(r, 'html.parser')
         # try:

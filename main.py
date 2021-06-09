@@ -71,7 +71,7 @@ async def on_message(message):
     if message.content.lower().replace(' ', '').replace('*', '').replace(
             '_', '').replace('|','') == 'poggers':
         if message.author != bot.user:
-            await message.channel.send(message.content)
+            await message.reply(message.content)
             if len(db.prefix('poggers')) > 0:
                 db['poggers'] += 1
             else:
@@ -87,7 +87,7 @@ async def on_message(message):
         for ticker in tickers:
             if len(ticker) == 0:
                 continue
-            characters_to_remove = [',', ';', '-', '?', '!', '.', '*', '|']
+            characters_to_remove = [',', ';', '-', '?', '!', '.', '*', '|', '(', ')', '[', ']', '{', '}', "'", '"']
             while True:
                 if ticker[-1] in characters_to_remove: #only want to remove from the end because some tickers have punctuation in them
                     ticker = ticker[:-1]
@@ -109,33 +109,51 @@ async def on_message(message):
             else:  
                 sending_message_boolean = True  
                 r=r['result'][0]
-                current_price = r['price']['regularMarketPrice']['fmt']
-                change_percent = r['price']['regularMarketChangePercent']['fmt']
-                if r['price']['regularMarketChangePercent']['raw'] < 0:
-                    up_down = 'down'
-                else:
-                    up_down = 'up'
-                if len(r['summaryDetail']['marketCap']) == 0:
-                    market_cap = 'N/A'
-                else:
-                    market_cap = r['summaryDetail']['marketCap']['fmt']
-                fifty_day_sma = r['summaryDetail']['fiftyDayAverage']['fmt']
-                two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage'][
-                    'fmt']
-                fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
-                fifty_two_week_high = r['summaryDetail']['fiftyTwoWeekHigh']['fmt']
-                company_name = r['price']['longName']
-                current_message = f'{company_name} (**{ticker.upper()}**) is currently **${current_price}** and is {up_down} **{change_percent}** today. Their market cap is **${market_cap}**, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.'
-                if r['price']['quoteType'] == 'EQUITY':
-                    if r['price']['marketState'] == 'PRE':
-                        pre_market_change = r['price']['preMarketChangePercent']['fmt']
-                        current_message += f' Their premarket change is **{pre_market_change}**.'
-                    elif 'POST' in r['price']['marketState']:
-                        post_market_change = r['price']['postMarketChangePercent']['fmt']
-                        current_message += f' Their after market change is **{post_market_change}**.'
-                ticker_messages.append(
-                    current_message
-                )
+                try:
+                    if len(r['price']['regularMarketPrice']) == 0:
+                        current_price = 0
+                    else:
+                        current_price = r['price']['regularMarketPrice']['fmt']
+                    if len(r['price']['regularMarketChangePercent']) == 0:
+                        change_percent = 0
+                    else:
+                        change_percent = r['price']['regularMarketChangePercent']['fmt']
+                    if r['price']['regularMarketChangePercent']['raw'] < 0:
+                        up_down = 'down'
+                    else:
+                        up_down = 'up'
+                    if len(r['summaryDetail']['marketCap']) == 0:
+                        market_cap = 'N/A'
+                    else:
+                        market_cap = r['summaryDetail']['marketCap']['fmt']
+                    if len(r['summaryDetail']['fiftyDayAverage']) == 0:
+                        fifty_day_sma = 'N/A'
+                    else:
+                        fifty_day_sma = r['summaryDetail']['fiftyDayAverage']['fmt']
+                    if len(r['summaryDetail']['twoHundredDayAverage']) == 0:
+                        two_hundred_day_sma = 'N/A'
+                    else:
+                        two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage']['fmt']
+                    fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
+                    fifty_two_week_high = r['summaryDetail']['fiftyTwoWeekHigh']['fmt']
+                    company_name = r['price']['longName']
+                    current_message = f'{company_name} (**{ticker.upper()}**) is currently **${current_price}** and is {up_down} **{change_percent}** today. Their market cap is **${market_cap}**, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.'
+                    try:
+                        if r['price']['quoteType'] == 'EQUITY':
+                            if r['price']['marketState'] == 'PRE':
+                                pre_market_change = r['price']['preMarketChangePercent']['fmt']
+                                current_message += f" Their premarket change is **{pre_market_change}** and the price is **${r['price']['preMarketPrice']['fmt']}**."
+                            elif 'POST' in r['price']['marketState'] or r['price']['marketState'] == 'PREPRE':
+                                post_market_change = r['price']['postMarketChangePercent']['fmt']
+                                current_message += f" Their after market change is **{post_market_change}** and the price is **${r['price']['postMarketPrice']['fmt']}**."
+                    except KeyError:
+                        pass
+                    ticker_messages.append(
+                        current_message
+                    )
+                except KeyError:
+                    await message.channel.send(f'Error fetching info for {ticker}')
+                
             if len(db.prefix('three_dollar_stock')) > 0:
                 db['three_dollar_stock'] += 1
             else:
@@ -302,15 +320,21 @@ async def bruhCount(ctx, count='10'):
     await message.delete()
 
 
-@bot.command(aliases=['mbc'])
-async def myBruhCount(ctx):
+@bot.command(aliases=['ubc'])
+async def userBruhCount(ctx, user):
     '''
-    Get your personal bruh count
+    Get a user's bruh count
     '''
     message = await ctx.send('loading...')
-    db_key = 'bruh_' + str(ctx.message.author).replace('#', '')
-    value = db[db_key]
-    await ctx.send(f'The bruh count for {ctx.message.author} is {value}.')
+    for character in ['<', '@', '!', '>']:
+        user = user.replace(character, '')
+    user= await bot.fetch_user(user)
+    db_key = 'bruh_' + str(user).replace('#', '')
+    try:
+        value = db[db_key]
+    except KeyError:
+        value = 0
+    await ctx.send(f'The bruh count for {user} is {value}.')
     await message.delete()
 
 
