@@ -115,7 +115,7 @@ class StockCommands(commands.Cog, name='Stock Commands'):
     @commands.command(aliases=['parik'])
     async def parik_patel_tweet(self,ctx):
         '''Get a tweet from Dr. Parik Patel, BA, CFA, ACCA Esq.'''
-        tweet = '"' + choice(tweets) + '" - Dr. Parik Patel'
+        tweet = '"' + choice(tweets) + '" - Dr. Parik Patel BA, CFA, ACCA Esq. 💸'
         if len(tweet) > 255:
             embed = discord.Embed(title='Dr. Parik Patel Quote',
                                   description=tweet,

@@ -65,5 +65,11 @@ tweets = [
     'Imagine hiring dozens of guys with MBAs and PhDs and paying them 6 figure salaries only for your fund to be down 53% in one month',
     'The best performing assets of 2021 are:\n- A failing video game retailer\n- A cinema chain close to bankruptcy\n- A dog-themed cryptocurrency',
     "Chamath hasn't even lost his virginity because he never loses",
-    
+    "Michael Burry is that annoying kid who did something cool once and now thinks he's relevant in every situation known to man",
+    "deleted all my dating apps because I want to meet somebody the old fashioned way (arranged marriage)",
+    "THREAD: One year ago I had 0 followers. Today, I have over 300,000. Here's how I did it Down pointing backhand indexDown pointing backhand index\nPosted some dank memes lol",
+    'The devil works hard but Dr. Parik Patel, BA, CFA, ACCA Esq. works harder',
+    'If Warren Buffett married Elizabeth Warren and took her surname he’d be called Warren Warren',
+    'The Fed be like "the internet outage is only transitory"',
+    'Maybe the President of El Salvador is Satoshi Nakomoto'
 ]

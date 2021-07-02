@@ -1,12 +1,13 @@
 import discord, requests, os, random
 from discord.ext import commands
 from dotenv import load_dotenv
+from replit import db
 
 load_dotenv()
 
+
 class CoolCommands(commands.Cog, name='Cool Commands'):
     '''Cool commands'''
-
     def __init__(self, bot):
         self.bot = bot
 
@@ -17,24 +18,24 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         '''
         message = await ctx.send('loading...')
         r = requests.get(
-            'https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key=' +
-            os.getenv('nyt-key'))
+            'https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?api-key='
+            + os.getenv('nyt-key'))
         result = r.json()['results'][0]
         embed = discord.Embed(title=result['title'],
-                            url=result['url'],
-                            description=result['abstract'],
-                            color=discord.Color.green())
+                              url=result['url'],
+                              description=result['abstract'],
+                              color=discord.Color.green())
         embed.set_image(url=result['media'][0]['media-metadata'][2]['url'])
         await ctx.send(embed=embed)
         await message.delete()
-    
+
     @commands.command(aliases=['apod', 'space', 'space_picture'])
     async def astronomy_picture(self, ctx):
         '''
         NASA Astronomy picture of the day
         '''
         r = requests.get('https://api.nasa.gov/planetary/apod?api_key=' +
-                        os.getenv('nasa-key'))
+                         os.getenv('nasa-key'))
         result = r.json()
         embed = discord.Embed(
             title=result['title'],
@@ -44,7 +45,6 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         embed.set_image(url=result['url'])
         await ctx.send(embed=embed)
 
-
     @commands.command(aliases=['cxkcd', 'rxkcd'])
     async def recent_xkcd(self, ctx):
         '''
@@ -53,11 +53,10 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         r = requests.get('https://xkcd.com/info.0.json')
         result = r.json()
         embed = discord.Embed(title=f"{result['title']}: https://xkcd.com",
-                            description=result['alt'],
-                            color=discord.Color.teal())
+                              description=result['alt'],
+                              color=discord.Color.teal())
         embed.set_image(url=result['img'])
         await ctx.send(embed=embed)
-
 
     @commands.command(aliases=['xkcd'])
     async def random_xkcd(self, ctx):
@@ -75,6 +74,33 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         embed.set_image(url=result['img'])
         await ctx.send(embed=embed)
 
+    @commands.command(aliases=['anon', 'confess'])
+    async def anon_message(self, ctx, channel, *, arg):
+        message_channel = self.bot.get_channel(int(channel))
+        anon_message = arg
+        # await message_channel.send('Confession from ' + ctx.message.author.name + ': ' + anon_message)
+        with open('slurs_to_ban.txt') as f:
+            text = f.read()
+            words_to_ban = text.split(',')
+            for word in words_to_ban:
+                word = word.strip()
+                wtr = word[0]
+                for i in range(len(word) - 1):
+                    wtr += '*'
+                anon_message = anon_message.replace(word, wtr)
+        anon_message += '\n**All confessions are anonymous. Rice bot has public code which is available using the ^code command**'
+        messages = [anon_message[i:i+4096] for i in range(0,len(anon_message), 4096)]
+        embeds = []
+        colors = [random.randrange(0,255), random.randrange(0,255), random.randrange(0,255)]
+        for i, anon_message_part in enumerate(messages):
+            title = f'Anon message #{db["anon_message"]} Part {i+1} of {len(messages)}'
+            embeds.append(discord.Embed(title=title,
+                        description=anon_message_part,
+                        color=discord.Color.from_rgb(colors[0], colors[1], colors[2])))
+        for embed in embeds:
+            await message_channel.send(embed=embed)
+        await ctx.send('Message sent')
+
 
 def setup(bot):
-	bot.add_cog(CoolCommands(bot))
+    bot.add_cog(CoolCommands(bot))
