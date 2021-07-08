@@ -1,7 +1,10 @@
 import discord, requests, os, random
+from discord_components import Button
 from discord.ext import commands
 from dotenv import load_dotenv
 from replit import db
+from random import randrange
+from time import perf_counter
 
 load_dotenv()
 
@@ -10,6 +13,86 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
     '''Cool commands'''
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.command(aliases=['rl'])  
+    @commands.has_role('Admins')
+    async def reload(self, ctx, *, cog):
+        '''
+        Reloads a cog.
+        '''
+        extensions = self.bot.extensions
+        if cog == 'all':
+            for extension in extensions:
+                self.bot.unload_extension(cog)
+                self.bot.load_extension(cog)
+            await ctx.send('Done')
+        elif cog in extensions:
+            self.bot.unload_extension(cog)
+            self.bot.load_extension(cog)
+            await ctx.send('Done')
+        else:
+            await ctx.send('Unknown Cog')
+
+    @commands.command(aliases=['cb'])
+    async def clear_buttons(self,ctx):
+        self.bot.button_exists = False
+        await ctx.send('Buttons have been cleared. Use ^bt or ^button to make a button.')
+
+    @commands.command(aliases=['bt'])
+    async def button(self,ctx):
+        rand = randrange(1,5)
+        start_time = perf_counter()
+        try:
+            button_exists = self.bot.button_exists
+        except AttributeError:
+            button_exists = False
+        if not button_exists:
+            m = await ctx.send(
+                rand,
+                components = [[
+                    Button(label = "1", style=randrange(1,4)),
+                    Button(label = "2", style=randrange(1,4)),
+                    Button(label = "3", style=randrange(1,4)),
+                    Button(label = "4", style=randrange(1,4)),
+                    Button(label = "5", style=randrange(1,4)),
+                ]]
+            )
+            self.bot.button_exists = True
+            def check(res):
+                self.bot.button_exists = False
+                return res.component.label.startswith(str(rand))
+            # while True:
+            interaction = await self.bot.wait_for("button_click")
+            def speed_word(speed):
+                if speed < 3:
+                    return 'fast!'
+                elif speed < 6:
+                    return 'could be faster!'
+                elif speed < 12:
+                    return 'slow'
+                else:
+                    return '🐢'
+            if check(interaction):
+                response_time = round(perf_counter() - start_time,2)
+                content = f"Correct for {interaction.user}, :white_check_mark: in {response_time} seconds, {speed_word(response_time)}"
+                # await interaction.respond(content = f"Correct, :white_check_mark: in {response_time} seconds, {speed_word(response_time)}")
+            else:
+                content = f"Incorrect for {interaction.user}, :x:"
+            await interaction.respond(content = 'Answered')
+            await m.edit(
+                content,
+                components = [[
+                    Button(label = "1", style=randrange(1,4), disabled=True),
+                    Button(label = "2", style=randrange(1,4), disabled=True),
+                    Button(label = "3", style=randrange(1,4), disabled=True),
+                    Button(label = "4", style=randrange(1,4), disabled=True),
+                    Button(label = "5", style=randrange(1,4), disabled=True),
+                ]]
+            )
+        else:
+            await ctx.send('A button already exists')
+
+        
 
     @commands.command(aliases=['nyt', 'nytp'])
     async def nyt_popular(self, ctx):
@@ -79,15 +162,15 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         message_channel = self.bot.get_channel(int(channel))
         anon_message = arg
         # await message_channel.send('Confession from ' + ctx.message.author.name + ': ' + anon_message)
-        with open('slurs_to_ban.txt') as f:
-            text = f.read()
-            words_to_ban = text.split(',')
-            for word in words_to_ban:
-                word = word.strip()
-                wtr = word[0]
-                for i in range(len(word) - 1):
-                    wtr += '*'
-                anon_message = anon_message.replace(word, wtr)
+        # with open('slurs_to_ban.txt') as f:
+        #     text = f.read()
+        #     words_to_ban = text.split(',')
+        #     for word in words_to_ban:
+        #         word = word.strip()
+        #         wtr = word[0]
+        #         for i in range(len(word) - 1):
+        #             wtr += '*'
+        #         anon_message = anon_message.replace(word, wtr)
         anon_message += '\n**All confessions are anonymous. Rice bot has public code which is available using the ^code command**'
         messages = [anon_message[i:i+4096] for i in range(0,len(anon_message), 4096)]
         embeds = []

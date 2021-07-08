@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from discord.ext import commands, tasks
 from keep_alive import keep_alive
 from replit import db
+from discord_components import DiscordComponents
 
 load_dotenv()
 
@@ -35,6 +36,7 @@ if __name__ == '__main__':  # Ensures this is the file being ran
 
 @bot.event
 async def on_ready():
+    DiscordComponents(bot)
     print(f'Bot connected as {bot.user}')
     await bot.change_presence(activity=discord.Activity(
         type=discord.ActivityType.listening, name="^help"))
@@ -76,6 +78,9 @@ async def on_message(message):
                 db['poggers'] += 1
             else:
                 db['poggers'] = 1
+    # doesn't check if message sender is bot so will keep sending forever
+    # if 'koyfin' in message.content.lower() and message.channel.id == 804216164284629032:
+    #     await message.channel.send("Koyfin's update adding paid plans came at the expense of the free plan and forced users to pay basically 1000 dollars a year for a usable product, ruining the product.")
     if '$$' in message.content:
         loading_message = await message.channel.send('loading...')
         split_message = message.content.replace('\n',' ').split('$$')[1:]
