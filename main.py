@@ -107,8 +107,10 @@ async def on_message(message):
                 if len(graph_settings) != 0 and int(graph_settings) <= 3:
                     frequency = 6
                 await message.channel.send(f'https://api.wsj.net/api/kaavio/charts/big.chart?nosettings=1&symb={ticker}&uf=0&type=4&size=2&style=350&freq={frequency}&entitlementtoken=0c33378313484ba9b46b8e24ded87dd6&time={graph_settings}&rand=1111111&compidx=aaaaa%3a0&ma=3&maval=50&lf=2&lf2=4&lf3=0&height=444&width=579&mocktick=1')
-            api_link = f'https://query1.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail&corsDomain=finance.yahoo.com'
-            r = requests.get(api_link).json()['quoteSummary']
+            api_link = f'https://query2.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail&corsDomain=finance.yahoo.com'
+            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+            r = requests.get(api_link, headers=headers)
+            r = r.json()['quoteSummary']
             if type(r['result']) == type(None):
                 await message.channel.send(r['error']['description'])
             else:  
@@ -245,14 +247,11 @@ async def trivia(ctx):
 
 
 @bot.command(aliases=['a'])
-async def answer(ctx, *args):
+async def answer(ctx, *, arg):
     '''
     Answer a trivia question
     '''
-    answer = ''
-    for arg in args:
-        answer += arg + ' '
-    answer = answer.strip()
+    answer = arg.strip()
     if answer.lower() == bot.current_trivia_answer.lower():
         await ctx.send('Correct!')
     elif answer.lower() in ['igu', 'i give up']:
@@ -263,14 +262,11 @@ async def answer(ctx, *args):
 
 @bot.command(aliases=['cp'])
 @commands.has_role('Admins')
-async def change_presence(ctx, type, *args):
+async def change_presence(ctx, type, *, arg):
     '''
     Admin only command to change bot presence
     '''
-    phrase = ''
-    for arg in args:
-        phrase += arg + ' '
-    phrase = phrase.title()
+    phrase = arg.title()
     if type[0].lower() == 'l':
         await bot.change_presence(activity=discord.Activity(
             type=discord.ActivityType.listening, name=phrase))

@@ -11,17 +11,14 @@ class AICommands(commands.Cog, name='AI Commands'):
         self.bot = bot
 
     @commands.command(aliases=['ai_text_gen', 'ai_text_generation', 'ai'])
-    async def text_gen(self, ctx, *args):
+    async def text_gen(self, ctx, *, arg):
         '''
         Generate a paragraph from a sentence or phrase using AI
         '''
-        phrase = ''
-        for arg in args:
-            phrase += arg + ' '
         message = await ctx.send('loading...')
         r = requests.post("https://api.deepai.org/api/text-generator",
                         data={
-                            'text': phrase,
+                            'text': arg,
                         },
                         headers={'api-key': os.getenv('api-key')})
         await ctx.send(r.json()['output'])
@@ -29,17 +26,14 @@ class AICommands(commands.Cog, name='AI Commands'):
 
 
     @commands.command(aliases=['sentiment', 'emotion', 'feeling', 'feel'])
-    async def sentiment_analysis(self, ctx, *args):
+    async def sentiment_analysis(self, ctx, *, arg):
         '''
         Sentiment analysis of text
         '''
-        phrase = ''''''
-        for arg in args:
-            phrase += arg + ' '
         message = await ctx.send('loading...')
         r = requests.post("https://api.deepai.org/api/sentiment-analysis",
                         data={
-                            'text': phrase,
+                            'text': arg,
                         },
                         headers={'api-key': os.getenv('api-key')})
         await ctx.send(r.json()['output'])

@@ -35,11 +35,17 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
 
     @commands.command(aliases=['cb'])
     async def clear_buttons(self,ctx):
+        '''
+        Clear active buttons
+        '''
         self.bot.button_exists = False
         await ctx.send('Buttons have been cleared. Use ^bt or ^button to make a button.')
 
     @commands.command(aliases=['bt'])
     async def button(self,ctx):
+        '''
+        Get a button and see who can click fastest
+        '''
         rand = randrange(1,5)
         start_time = perf_counter()
         try:
@@ -159,30 +165,37 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
 
     @commands.command(aliases=['anon', 'confess'])
     async def anon_message(self, ctx, channel, *, arg):
-        message_channel = self.bot.get_channel(int(channel))
-        anon_message = arg
-        # await message_channel.send('Confession from ' + ctx.message.author.name + ': ' + anon_message)
-        # with open('slurs_to_ban.txt') as f:
-        #     text = f.read()
-        #     words_to_ban = text.split(',')
-        #     for word in words_to_ban:
-        #         word = word.strip()
-        #         wtr = word[0]
-        #         for i in range(len(word) - 1):
-        #             wtr += '*'
-        #         anon_message = anon_message.replace(word, wtr)
-        anon_message += '\n**All confessions are anonymous. Rice bot has public code which is available using the ^code command**'
-        messages = [anon_message[i:i+4096] for i in range(0,len(anon_message), 4096)]
-        embeds = []
-        colors = [random.randrange(0,255), random.randrange(0,255), random.randrange(0,255)]
-        for i, anon_message_part in enumerate(messages):
-            title = f'Anon message #{db["anon_message"]} Part {i+1} of {len(messages)}'
-            embeds.append(discord.Embed(title=title,
-                        description=anon_message_part,
-                        color=discord.Color.from_rgb(colors[0], colors[1], colors[2])))
-        for embed in embeds:
-            await message_channel.send(embed=embed)
-        await ctx.send('Message sent')
+        '''
+        Send an anonymous message to any channel using the id
+        '''
+        if channel in ['833788929525678149', '787079371454283796', '787077776724590663', '796589258382114836']:
+            message_channel = self.bot.get_channel(int(channel))
+            anon_message = arg
+            # await message_channel.send('Confession from ' + ctx.message.author.name + ': ' + anon_message)
+            # with open('slurs_to_ban.txt') as f:
+            #     text = f.read()
+            #     words_to_ban = text.split(',')
+            #     for word in words_to_ban:
+            #         word = word.strip()
+            #         wtr = word[0]
+            #         for i in range(len(word) - 1):
+            #             wtr += '*'
+            #         anon_message = anon_message.replace(word, wtr)
+            anon_message += '\n**All confessions are anonymous. Rice bot has public code which is available using the ^code command**'
+            messages = [anon_message[i:i+4096] for i in range(0,len(anon_message), 4096)]
+            embeds = []
+            colors = [random.randrange(0,255), random.randrange(0,255), random.randrange(0,255)]
+            for i, anon_message_part in enumerate(messages):
+                title = f'Anon message #{db["anon_message"]} Part {i+1} of {len(messages)}'
+                embeds.append(discord.Embed(title=title,
+                            description=anon_message_part,
+                            color=discord.Color.from_rgb(colors[0], colors[1], colors[2])))
+            for embed in embeds:
+                await message_channel.send(embed=embed)
+            await ctx.send('Message sent')
+        else:
+            await ctx.send('You cannot send messages in that channel')
+
 
 
 def setup(bot):

@@ -133,16 +133,13 @@ class RandomCommands(commands.Cog, name='Random Commands'):
             await ctx.send('Enter an integer')
 
     @commands.command(aliases=['cook'])
-    async def recipe(self, ctx, query, *args):
+    async def recipe(self, ctx, query, * arg):
         '''
         Find a recipe by listing ingredients and what you want to make
         '''
-        phrase = ''
-        for arg in args:
-            phrase += arg + ','
         message = await ctx.send('loading...')
         r = requests.get(
-            f'http://www.recipepuppy.com/api/?i={phrase}&q={query}')
+            f'http://www.recipepuppy.com/api/?i={arg}&q={query}')
         result = random.choice(r.json()['results'])
         embed = discord.Embed(title=result['title'],
                               url=result['href'],
