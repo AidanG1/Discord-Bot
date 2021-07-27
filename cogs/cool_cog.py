@@ -168,7 +168,7 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         '''
         Send an anonymous message to any channel using the id
         '''
-        if channel in ['833788929525678149', '787079371454283796', '787077776724590663', '796589258382114836']:
+        if channel in ['833788929525678149', '787079371454283796', '787077776724590663', '796589258382114836', '787562168852676629', '796518787628400660']:
             message_channel = self.bot.get_channel(int(channel))
             anon_message = arg
             # await message_channel.send('Confession from ' + ctx.message.author.name + ': ' + anon_message)
@@ -192,7 +192,7 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
                             color=discord.Color.from_rgb(colors[0], colors[1], colors[2])))
             for embed in embeds:
                 await message_channel.send(embed=embed)
-            await ctx.send('Message sent')
+            await ctx.send(f'Message #{db["anon_message"] - 1} sent')
         else:
             await ctx.send('You cannot send messages in that channel')
 
