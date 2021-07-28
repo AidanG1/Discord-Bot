@@ -171,16 +171,6 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         if channel in ['833788929525678149', '787079371454283796', '787077776724590663', '796589258382114836', '787562168852676629', '796518787628400660']:
             message_channel = self.bot.get_channel(int(channel))
             anon_message = arg
-            # await message_channel.send('Confession from ' + ctx.message.author.name + ': ' + anon_message)
-            # with open('slurs_to_ban.txt') as f:
-            #     text = f.read()
-            #     words_to_ban = text.split(',')
-            #     for word in words_to_ban:
-            #         word = word.strip()
-            #         wtr = word[0]
-            #         for i in range(len(word) - 1):
-            #             wtr += '*'
-            #         anon_message = anon_message.replace(word, wtr)
             anon_message += '\n**All confessions are anonymous. Rice bot has public code which is available using the ^code command**'
             messages = [anon_message[i:i+4096] for i in range(0,len(anon_message), 4096)]
             embeds = []

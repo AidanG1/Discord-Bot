@@ -78,6 +78,20 @@ async def on_message(message):
                 db['poggers'] += 1
             else:
                 db['poggers'] = 1
+    words_to_count = ('bruh', 'indeed')
+    for word in words_to_count:
+        word_count = message.content.lower().count(word)
+        if word_count > 0:
+            author = message.author
+            if author != bot.user:
+                db_name = word + '_' + str(author).replace('#', '')
+                if len(db.prefix(db_name)) > 0:
+                    db[db_name] += word_count
+                else:
+                    db[db_name] = word_count
+                if db['word_counter_enabled']:
+                    await message.channel.send(
+                        f'{word.title()} counter for {author} is now {db[db_name]}')
     # doesn't check if message sender is bot so will keep sending forever
     # if 'koyfin' in message.content.lower() and message.channel.id == 804216164284629032:
     #     await message.channel.send("Koyfin's update adding paid plans came at the expense of the free plan and forced users to pay basically 1000 dollars a year for a usable product, ruining the product.")
@@ -129,20 +143,27 @@ async def on_message(message):
                         up_down = 'down'
                     else:
                         up_down = 'up'
-                    if len(r['summaryDetail']['marketCap']) == 0:
+                    if 'summaryDetail' in r:
+                        if len(r['summaryDetail']['marketCap']) == 0:
+                            market_cap = 'N/A'
+                        else:
+                            market_cap = r['summaryDetail']['marketCap']['fmt']
+                        if len(r['summaryDetail']['fiftyDayAverage']) == 0:
+                            fifty_day_sma = 'N/A'
+                        else:
+                            fifty_day_sma = r['summaryDetail']['fiftyDayAverage']['fmt']
+                        if len(r['summaryDetail']['twoHundredDayAverage']) == 0:
+                            two_hundred_day_sma = 'N/A'
+                        else:
+                            two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage']['fmt']
+                        fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
+                        fifty_two_week_high = r['summaryDetail']['fiftyTwoWeekHigh']['fmt']
+                    else:
                         market_cap = 'N/A'
-                    else:
-                        market_cap = r['summaryDetail']['marketCap']['fmt']
-                    if len(r['summaryDetail']['fiftyDayAverage']) == 0:
                         fifty_day_sma = 'N/A'
-                    else:
-                        fifty_day_sma = r['summaryDetail']['fiftyDayAverage']['fmt']
-                    if len(r['summaryDetail']['twoHundredDayAverage']) == 0:
                         two_hundred_day_sma = 'N/A'
-                    else:
-                        two_hundred_day_sma = r['summaryDetail']['twoHundredDayAverage']['fmt']
-                    fifty_two_week_low = r['summaryDetail']['fiftyTwoWeekLow']['fmt']
-                    fifty_two_week_high = r['summaryDetail']['fiftyTwoWeekHigh']['fmt']
+                        fifty_two_week_low = 'N/A'
+                        fifty_two_week_high = 'N/A'
                     company_name = r['price']['longName']
                     current_message = f'{company_name} (**{ticker.upper()}**) is currently **${current_price}** and is {up_down} **{change_percent}** today. Their market cap is **${market_cap}**, 50 day SMA: ${fifty_day_sma}, 200 day SMA: ${two_hundred_day_sma}, 52 week low: ${fifty_two_week_low}, 52 week high: ${fifty_two_week_high}.'
                     try:
@@ -181,19 +202,7 @@ async def on_message(message):
             for message_to_send in messages_to_send:
                 await message.channel.send(message_to_send)
         await loading_message.delete()
-
-    bruh_count = message.content.lower().count('bruh')
-    if bruh_count > 0:
-        author = message.author
-        if author != bot.user:
-            db_name = 'bruh_' + str(author).replace('#', '')
-            if len(db.prefix(db_name)) > 0:
-                db[db_name] += bruh_count
-            else:
-                db[db_name] = bruh_count
-            if db['bruh_counter_enabled'] == True:
-                await message.channel.send(
-                    f'Bruh counter for {author} is now {db[db_name]}')
+    
     await bot.process_commands(message)
 
 
@@ -213,7 +222,7 @@ async def command_frequency(ctx, count='10'):
     keys = db.keys()
     key_list = []
     for key in keys:
-        if 'bruh_' not in key and '#' not in key:
+        if '#' not in key and not key[-1].isdigit():
             key_list.append([key, db[key]])
     key_list = sorted(key_list, key=lambda x: x[1], reverse=True)
     command = ''
@@ -277,66 +286,74 @@ async def change_presence(ctx, type, *, arg):
             type=discord.ActivityType.watching, name=phrase))
 
 
-@bot.command(aliases=['bce'])
+@bot.command(aliases=['ce', 'wce'])
 @commands.has_role('Admins')
-async def bruhCounter_enabled(ctx):
+async def wordCounter_enabled(ctx):
     '''
     Admin only command to change whether the bruh counter is enabled
     '''
-    if len(db.prefix('bruh_counter_enabled')) == 0:
-        db['bruh_counter_enabled'] = True
+    if len(db.prefix('word_counter_enabled')) == 0:
+        db['word_counter_enabled'] = True
     else:
-        db['bruh_counter_enabled'] = not db['bruh_counter_enabled']
-        await ctx.send(f"The bruh counter is now {db['bruh_counter_enabled']}")
+        db['word_counter_enabled'] = not db['word_counter_enabled']
+        await ctx.send(f"The word counter is now {db['word_counter_enabled']}")
 
 
-@bot.command(aliases=['bc'])
-async def bruhCount(ctx, count='10'):
+@bot.command(aliases=['wc'])
+async def wordCount(ctx, word='bruh', count='10'):
     '''
-    Get bruh count
+    Get word count
     '''
     message = await ctx.send('loading...')
+    word = word.lower()
     keys = db.keys()
-    filtered_keys = [key for key in keys if key[0:5] == 'bruh_']
-    bruh_keys = []
+    filtered_keys = [key for key in keys if key[0:(len(word) + 1)] == word + '_']
+    db_keys = []
     for i in range(len(filtered_keys)):
         if '#' not in filtered_keys[i]:
-            bruh_keys.append([filtered_keys[i], db[filtered_keys[i]]])
-            bruh_keys = sorted(bruh_keys, key=lambda x: x[1],
+            db_keys.append([filtered_keys[i], db[filtered_keys[i]]])
+            db_keys = sorted(db_keys, key=lambda x: x[1],
                                reverse=True)[0:int(count)]
     user = ''
-    bruhs = ''
-    for key in bruh_keys:
-        user += f"{key[0][5:]}\n"
-        bruhs += f"{key[1]}\n"
-    if len(user) + len(bruhs) > 1024:
+    words = ''
+    for key in db_keys:
+        user += f"{key[0][(len(word) + 1):]}\n"
+        words += f"{key[1]}\n"
+    if len(user) + len(words) > 1024:
         await ctx.send(
             'Message too long. Decrease the count for the message to send.')
     else:
-        embed = discord.Embed(title='User Bruh Count',
+        embed = discord.Embed(title=f'User {word.title()} Count',
                               color=discord.Color.gold())
         embed.add_field(name='User', value=user, inline=True)
-        embed.add_field(name='Bruh Count', value=bruhs, inline=True)
+        embed.add_field(name=f'{word.title()} Count', value=words, inline=True)
         await ctx.send(embed=embed)
     await message.delete()
 
 
-@bot.command(aliases=['ubc'])
-async def userBruhCount(ctx, user):
+@bot.command(aliases=['ubc', 'uwc'])
+async def userWordCount(ctx, user):
     '''
-    Get a user's bruh count
+    Get a user's word count
     '''
     message = await ctx.send('loading...')
     for character in ['<', '@', '!', '>']:
         user = user.replace(character, '')
     user= await bot.fetch_user(user)
-    db_key = 'bruh_' + str(user).replace('#', '')
-    try:
-        value = db[db_key]
-    except KeyError:
-        value = 0
-    await ctx.send(f'The bruh count for {user} is {value}.')
+    keys = []
+    for key in db.keys():
+        if key.split('_', 1)[-1] == str(user).replace('#', ''):
+            keys.append(key)
+    word_message = ''
+    for db_key in keys:
+        try:
+            value = db[db_key]
+        except KeyError:
+            value = 0
+        word_message += f'The {db_key.split("_")[0]} count for {user} is {value}. \n'
+    await ctx.send(word_message)
     await message.delete()
+    
 
 
 @bot.command(aliases=['code'])
