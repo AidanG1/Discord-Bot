@@ -78,7 +78,7 @@ async def on_message(message):
                 db['poggers'] += 1
             else:
                 db['poggers'] = 1
-    words_to_count = ('bruh', 'indeed')
+    words_to_count = ('bruh', 'indeed', 'pog')
     for word in words_to_count:
         word_count = message.content.lower().count(word)
         if word_count > 0:
@@ -361,7 +361,7 @@ async def get_code(ctx):
     '''
     Get the code for this bot
     '''
-    await ctx.send('https://repl.it/@AidanGerber/Discord-Bot#main.py')
+    await ctx.send('https://repl.it/@AidanGerber/Discord-Bot#main.py\nhttps://github.com/AidanG1/Discord-Bot')
 
 
 @bot.command(aliases=['aliases', 'alias', 'docs'])

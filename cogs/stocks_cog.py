@@ -184,7 +184,27 @@ class StockCommands(commands.Cog, name='Stock Commands'):
             await ctx.send(f'CNBC does not have a description for {ticker}')
         await message.delete()
 
-    @commands.command(aliases=['wsjd', 'd'])
+    @commands.command(aliases=['ld', 'd'])
+    async def stock_analysis_description(self, ctx, ticker):
+        '''
+        Get the stock analysis description of a company by ticker
+        '''
+        message = await ctx.send('loading...')
+        ticker = ticker.replace('$','')
+        r = requests.get(f'https://stockanalysis.com/stocks/{ticker}/company/').text
+        soup = BeautifulSoup(r, 'html.parser')
+        # try:
+        profile = soup.find(class_='description')
+        ld_message = ''
+        for tag in profile:
+            if tag.name != 'h2' and tag.name is not None:
+                ld_message += tag.text + '\n'
+        await ctx.send(ld_message)
+        # except AttributeError:
+        #     await ctx.send(f'Stock Analysis does not have a description for {ticker}')
+        await message.delete()
+
+    @commands.command(aliases=['wsjd'])
     async def wsj_description(self, ctx, ticker):
         '''
         Get the WSJ description of a company by ticker
