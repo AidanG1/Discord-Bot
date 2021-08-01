@@ -1,4 +1,5 @@
 import discord, requests, os, random
+from bs4 import BeautifulSoup
 from discord_components import Button
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -23,8 +24,8 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         extensions = self.bot.extensions
         if cog == 'all':
             for extension in extensions:
-                self.bot.unload_extension(cog)
-                self.bot.load_extension(cog)
+                self.bot.unload_extension(extension)
+                self.bot.load_extension(extension)
             await ctx.send('Done')
         elif cog in extensions:
             self.bot.unload_extension(cog)
@@ -176,13 +177,13 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
             embeds = []
             colors = [random.randrange(0,255), random.randrange(0,255), random.randrange(0,255)]
             for i, anon_message_part in enumerate(messages):
-                title = f'Anon message #{db["anon_message"]} Part {i+1} of {len(messages)}'
+                title = f'Anon message #{db["anon_message"] + db["frq_anon_message"]} Part {i+1} of {len(messages)}'
                 embeds.append(discord.Embed(title=title,
                             description=anon_message_part,
                             color=discord.Color.from_rgb(colors[0], colors[1], colors[2])))
             for embed in embeds:
                 await message_channel.send(embed=embed)
-            await ctx.send(f'Message #{db["anon_message"] - 1} sent')
+            await ctx.send(f'Message #{db["anon_message"] + db["frq_anon_message"] - 1} sent')
         else:
             await ctx.send('You cannot send messages in that channel')
 

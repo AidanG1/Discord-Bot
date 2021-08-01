@@ -72,6 +72,29 @@ class GamesCommands(commands.Cog, name='Games Commands'):
         embed.add_field(name='Rating', value=ratings, inline=True)
         await ctx.send(embed=embed)
 
+    @commands.command(aliases=['trivia_question', 'triv'])
+    async def trivia(self, ctx):
+        '''
+        Get a random trivia question
+        '''
+        r = requests.get('http://jservice.io/api/random')
+        self.bot.current_trivia_answer = r.json()[0]['answer']
+        await ctx.send(r.json()[0]['question'])
+
+
+    @commands.command(aliases=['a'])
+    async def answer(self, ctx, *, arg):
+        '''
+        Answer a trivia question
+        '''
+        answer = arg.strip()
+        if answer.lower() == self.bot.current_trivia_answer.lower():
+            await ctx.send('Correct!')
+        elif answer.lower() in ['igu', 'i give up']:
+            await ctx.send(self.bot.current_trivia_answer)
+        else:
+            await ctx.send('Incorrect')
+
 
 def setup(bot):
 	bot.add_cog(GamesCommands(bot))

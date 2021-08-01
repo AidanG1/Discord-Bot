@@ -22,6 +22,7 @@ extensions = [
     'cogs.ai_cog',
     'cogs.cool_cog',
     'cogs.games_cog',
+    'cogs.lyrics_cog',
     'cogs.ping_yin_cog',
     'cogs.random_cog',
     'cogs.stocks_cog',
@@ -74,10 +75,10 @@ async def on_message(message):
             '_', '').replace('|','') == 'poggers':
         if message.author != bot.user:
             await message.reply(message.content)
-            if len(db.prefix('poggers')) > 0:
-                db['poggers'] += 1
+            if len(db.prefix('frq_poggers')) > 0:
+                db['frq_poggers'] += 1
             else:
-                db['poggers'] = 1
+                db['frq_poggers'] = 1
     words_to_count = ('bruh', 'indeed', 'pog')
     for word in words_to_count:
         word_count = message.content.lower().count(word)
@@ -182,10 +183,10 @@ async def on_message(message):
                 except KeyError:
                     await message.channel.send(f'Error fetching info for {ticker}')
                 
-            if len(db.prefix('three_dollar_stock')) > 0:
-                db['three_dollar_stock'] += 1
+            if len(db.prefix('frq_two_dollar_stock')) > 0:
+                db['frq_two_dollar_stock'] += 1
             else:
-                db['three_dollar_stock'] = 1
+                db['frq_two_dollar_stock'] = 1
         if sending_message_boolean:
             current_message = 0
             messages_to_send = ['']
@@ -208,10 +209,10 @@ async def on_message(message):
 
 @bot.event
 async def on_command(ctx):
-    if len(db.prefix(ctx.command)) > 0:
-        db[ctx.command] += 1
+    if len(db.prefix('frq_' + str(ctx.command))) > 0:
+        db['frq_' + str(ctx.command)] += 1
     else:
-        db[ctx.command] = 1
+        db['frq_' + str(ctx.command)] = 1
 
 
 @bot.command(aliases=['cfrq', 'frq'])
@@ -219,7 +220,7 @@ async def command_frequency(ctx, count='10'):
     '''
     Get the amount of times that each command has been run
     '''
-    keys = db.keys()
+    keys = db.prefix('frq_')
     key_list = []
     for key in keys:
         if '#' not in key and not key[-1].isdigit():
@@ -239,34 +240,6 @@ async def command_frequency(ctx, count='10'):
         embed.add_field(name='Command', value=command, inline=True)
         embed.add_field(name='Times Run', value=times_run, inline=True)
         await ctx.send(embed=embed)
-
-
-bot.current_trivia_answer = ''
-
-
-@bot.command(aliases=['trivia_question', 'triv'])
-async def trivia(ctx):
-    '''
-    Get a random trivia question
-    '''
-    r = requests.get('http://jservice.io/api/random')
-    bot.current_trivia_answer = r.json()[0]['answer']
-    print(bot.current_trivia_answer)
-    await ctx.send(r.json()[0]['question'])
-
-
-@bot.command(aliases=['a'])
-async def answer(ctx, *, arg):
-    '''
-    Answer a trivia question
-    '''
-    answer = arg.strip()
-    if answer.lower() == bot.current_trivia_answer.lower():
-        await ctx.send('Correct!')
-    elif answer.lower() in ['igu', 'i give up']:
-        await ctx.send(bot.current_trivia_answer)
-    else:
-        await ctx.send('Incorrect')
 
 
 @bot.command(aliases=['cp'])
