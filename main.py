@@ -71,7 +71,7 @@ async def before_countdown_till_o_week():
 
 @bot.event
 async def on_message(message):
-    if message.content.lower().replace(' ', '').replace('*', '').replace(
+    if message.content.lower().replace(' ', '').replace('*', '').replace('~','').replace(
             '_', '').replace('|','') == 'poggers':
         if message.author != bot.user:
             await message.reply(message.content)
@@ -281,27 +281,31 @@ async def wordCount(ctx, word='bruh', count='10'):
     word = word.lower()
     keys = db.keys()
     filtered_keys = [key for key in keys if key[0:(len(word) + 1)] == word + '_']
-    db_keys = []
-    for i in range(len(filtered_keys)):
-        if '#' not in filtered_keys[i]:
-            db_keys.append([filtered_keys[i], db[filtered_keys[i]]])
-            db_keys = sorted(db_keys, key=lambda x: x[1],
-                               reverse=True)[0:int(count)]
-    user = ''
-    words = ''
-    for key in db_keys:
-        user += f"{key[0][(len(word) + 1):]}\n"
-        words += f"{key[1]}\n"
-    if len(user) + len(words) > 1024:
-        await ctx.send(
-            'Message too long. Decrease the count for the message to send.')
+    if len(filtered_keys) == 0:
+        await message.delete()
+        await ctx.send(word + ' not in database')
     else:
-        embed = discord.Embed(title=f'User {word.title()} Count',
-                              color=discord.Color.gold())
-        embed.add_field(name='User', value=user, inline=True)
-        embed.add_field(name=f'{word.title()} Count', value=words, inline=True)
-        await ctx.send(embed=embed)
-    await message.delete()
+        db_keys = []
+        for i in range(len(filtered_keys)):
+            if '#' not in filtered_keys[i]:
+                db_keys.append([filtered_keys[i], db[filtered_keys[i]]])
+                db_keys = sorted(db_keys, key=lambda x: x[1],
+                                reverse=True)[0:int(count)]
+        user = ''
+        words = ''
+        for key in db_keys:
+            user += f"{key[0][(len(word) + 1):-4]}\n"
+            words += f"{key[1]}\n"
+        if len(user) + len(words) > 1024:
+            await ctx.send(
+                'Message too long. Decrease the count for the message to send.')
+        else:
+            embed = discord.Embed(title=f'User {word.title()} Count',
+                                color=discord.Color.gold())
+            embed.add_field(name='User', value=user, inline=True)
+            embed.add_field(name=f'{word.title()} Count', value=words, inline=True)
+            await ctx.send(embed=embed)
+        await message.delete()
 
 
 @bot.command(aliases=['ubc', 'uwc'])

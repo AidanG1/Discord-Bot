@@ -3,9 +3,9 @@
     "cogs/cool_cog.py": [
       {
         "id": "d747cfd3-8eb4-4b4a-a6d0-50c5c5ddc028",
-        "line": 188,
-        "version": 5031,
-        "index": 7644
+        "line": 257,
+        "version": 6055,
+        "index": 10557
       }
     ],
     "cogs/lyrics_cog.pyc": [

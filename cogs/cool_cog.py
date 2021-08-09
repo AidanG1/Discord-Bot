@@ -1,4 +1,4 @@
-import discord, requests, os, random
+import discord, requests, os, random, asyncio
 from bs4 import BeautifulSoup
 from discord_components import Button
 from discord.ext import commands
@@ -15,7 +15,7 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=['rl'])  
+    @commands.command(aliases=['rl'])
     @commands.has_role('Admins')
     async def reload(self, ctx, *, cog):
         '''
@@ -35,41 +35,43 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
             await ctx.send('Unknown Cog')
 
     @commands.command(aliases=['cb'])
-    async def clear_buttons(self,ctx):
+    async def clear_buttons(self, ctx):
         '''
         Clear active buttons
         '''
         self.bot.button_exists = False
-        await ctx.send('Buttons have been cleared. Use ^bt or ^button to make a button.')
+        await ctx.send(
+            'Buttons have been cleared. Use ^bt or ^button to make a button.')
 
     @commands.command(aliases=['bt'])
-    async def button(self,ctx):
+    async def button(self, ctx):
         '''
         Get a button and see who can click fastest
         '''
-        rand = randrange(1,5)
+        rand = randrange(1, 5)
         start_time = perf_counter()
         try:
             button_exists = self.bot.button_exists
         except AttributeError:
             button_exists = False
         if not button_exists:
-            m = await ctx.send(
-                rand,
-                components = [[
-                    Button(label = "1", style=randrange(1,4)),
-                    Button(label = "2", style=randrange(1,4)),
-                    Button(label = "3", style=randrange(1,4)),
-                    Button(label = "4", style=randrange(1,4)),
-                    Button(label = "5", style=randrange(1,4)),
-                ]]
-            )
+            m = await ctx.send(rand,
+                               components=[[
+                                   Button(label="1", style=randrange(1, 4)),
+                                   Button(label="2", style=randrange(1, 4)),
+                                   Button(label="3", style=randrange(1, 4)),
+                                   Button(label="4", style=randrange(1, 4)),
+                                   Button(label="5", style=randrange(1, 4)),
+                               ]])
             self.bot.button_exists = True
+
             def check(res):
                 self.bot.button_exists = False
                 return res.component.label.startswith(str(rand))
+
             # while True:
             interaction = await self.bot.wait_for("button_click")
+
             def speed_word(speed):
                 if speed < 3:
                     return 'fast!'
@@ -79,27 +81,34 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
                     return 'slow'
                 else:
                     return '🐢'
+
             if check(interaction):
-                response_time = round(perf_counter() - start_time,2)
+                response_time = round(perf_counter() - start_time, 2)
                 content = f"Correct for {interaction.user}, :white_check_mark: in {response_time} seconds, {speed_word(response_time)}"
                 # await interaction.respond(content = f"Correct, :white_check_mark: in {response_time} seconds, {speed_word(response_time)}")
             else:
                 content = f"Incorrect for {interaction.user}, :x:"
-            await interaction.respond(content = 'Answered')
-            await m.edit(
-                content,
-                components = [[
-                    Button(label = "1", style=randrange(1,4), disabled=True),
-                    Button(label = "2", style=randrange(1,4), disabled=True),
-                    Button(label = "3", style=randrange(1,4), disabled=True),
-                    Button(label = "4", style=randrange(1,4), disabled=True),
-                    Button(label = "5", style=randrange(1,4), disabled=True),
-                ]]
-            )
+            await interaction.respond(content='Answered')
+            await m.edit(content,
+                         components=[[
+                             Button(label="1",
+                                    style=randrange(1, 4),
+                                    disabled=True),
+                             Button(label="2",
+                                    style=randrange(1, 4),
+                                    disabled=True),
+                             Button(label="3",
+                                    style=randrange(1, 4),
+                                    disabled=True),
+                             Button(label="4",
+                                    style=randrange(1, 4),
+                                    disabled=True),
+                             Button(label="5",
+                                    style=randrange(1, 4),
+                                    disabled=True),
+                         ]])
         else:
             await ctx.send('A button already exists')
-
-        
 
     @commands.command(aliases=['nyt', 'nytp'])
     async def nyt_popular(self, ctx):
@@ -135,6 +144,51 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         embed.set_image(url=result['url'])
         await ctx.send(embed=embed)
 
+    @commands.command(aliases=['disc'])
+    async def disclaimer(self, ctx, *, arg='A'):
+        '''
+        Send a disclaimer about PAA after a message
+        '''
+        message = await ctx.reply(
+            f'Disclaimer from <@!{ctx.message.author.id}>: **The advice in the replied message should not supersede what a PAA says**'
+        )
+
+    @commands.command(aliases=['cwc'])
+    async def channel_word_count(self, ctx, word='a', limit=100):
+        '''
+        Count usages of word in a channel
+        '''
+        timer = perf_counter()
+        loading_message = await ctx.send('loading...')
+        channel_history = await ctx.channel.history(limit=limit).flatten()
+        count_dict = {}
+        for message in channel_history:
+            word_count = message.content.lower().count(word)
+            if word_count > 0:
+                author = message.author.display_name.replace('||', '| |').replace('**', '* *').replace('__', '_ _')
+                if author in count_dict:
+                    count_dict[author] += word_count
+                else:
+                    count_dict[author] = word_count
+        count_list = sorted(list(count_dict.items()),key=lambda x: x[1], reverse=True)[0:10]
+        user = ''
+        counts = ''
+        for value in count_list:
+            user += f"{value[0]}\n"
+            counts += f"{value[1]}\n"
+        if len(user) + len(counts) > 1024:
+            await ctx.send(
+                'Message too long. Decrease the count for the message to send.')
+        else:
+            embed = discord.Embed(title=f'"{word.title()}" Count over {limit} most recent messages on #{ctx.channel.name}',
+                                color=discord.Color.gold())
+            embed.add_field(name='User', value=user, inline=True)
+            embed.add_field(name=f'{word.title()} Count', value=counts, inline=True)
+            await ctx.send(embed=embed)
+        await loading_message.delete()
+        total_time = perf_counter()-timer
+        await ctx.send(f'Execution time: {round(total_time,2)} seconds. Iterated through {round(limit/total_time,4)} messages per second.')
+
     @commands.command(aliases=['cxkcd', 'rxkcd'])
     async def recent_xkcd(self, ctx):
         '''
@@ -169,24 +223,38 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         '''
         Send an anonymous message to any channel using the id
         '''
-        if channel in ['833788929525678149', '787079371454283796', '787077776724590663', '796589258382114836', '787562168852676629', '796518787628400660']:
+        if channel in [
+                '833788929525678149', '787079371454283796',
+                '787077776724590663', '796589258382114836',
+                '787562168852676629', '796518787628400660'
+        ]:
             message_channel = self.bot.get_channel(int(channel))
             anon_message = arg
             anon_message += '\n**All confessions are anonymous. Rice bot has public code which is available using the ^code command**'
-            messages = [anon_message[i:i+4096] for i in range(0,len(anon_message), 4096)]
+            messages = [
+                anon_message[i:i + 4096]
+                for i in range(0, len(anon_message), 4096)
+            ]
             embeds = []
-            colors = [random.randrange(0,255), random.randrange(0,255), random.randrange(0,255)]
+            colors = [
+                random.randrange(0, 255),
+                random.randrange(0, 255),
+                random.randrange(0, 255)
+            ]
             for i, anon_message_part in enumerate(messages):
                 title = f'Anon message #{db["anon_message"] + db["frq_anon_message"]} Part {i+1} of {len(messages)}'
-                embeds.append(discord.Embed(title=title,
-                            description=anon_message_part,
-                            color=discord.Color.from_rgb(colors[0], colors[1], colors[2])))
+                embeds.append(
+                    discord.Embed(title=title,
+                                  description=anon_message_part,
+                                  color=discord.Color.from_rgb(
+                                      colors[0], colors[1], colors[2])))
             for embed in embeds:
                 await message_channel.send(embed=embed)
-            await ctx.send(f'Message #{db["anon_message"] + db["frq_anon_message"] - 1} sent')
+            await ctx.send(
+                f'Message #{db["anon_message"] + db["frq_anon_message"] - 1} sent'
+            )
         else:
             await ctx.send('You cannot send messages in that channel')
-
 
 
 def setup(bot):

@@ -191,18 +191,53 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         '''
         message = await ctx.send('loading...')
         ticker = ticker.replace('$','')
-        r = requests.get(f'https://stockanalysis.com/stocks/{ticker}/company/').text
+        url = f'https://stockanalysis.com/stocks/{ticker}/company/'
+        r = requests.get(url).text
         soup = BeautifulSoup(r, 'html.parser')
-        # try:
-        profile = soup.find(class_='description')
-        ld_message = ''
-        for tag in profile:
-            if tag.name != 'h2' and tag.name is not None:
-                ld_message += tag.text + '\n'
-        await ctx.send(ld_message)
-        # except AttributeError:
-        #     await ctx.send(f'Stock Analysis does not have a description for {ticker}')
-        await message.delete()
+        profile = soup.find(class_='text-page')
+        if profile is not None:
+            profile = profile.text
+            profile_text = ''
+            for tag in profile:
+                if tag is not None:
+                    profile_text += tag
+            section_div = soup.find('section', class_='mb-5')
+            section_text = '$'
+            run_once = True
+            for tag in section_div:
+                if tag is not None and tag.name in ['span', 'div']:
+                    if sum(1 for e in tag.children) >= 0:
+                        section_text += tag.text
+                        if run_once:
+                            section_text += ', change: $'
+                            run_once = False
+            if '-' in section_text:
+                color = discord.Color.red()
+            else:
+                color = discord.Color.green()
+            title = f'{soup.find(class_="text-2xl").text} {section_text}'
+            embed = discord.Embed(title=title,
+                                url=url,
+                                description=profile_text,
+                                color=color)
+            image_url = soup.find(class_='py-1')
+            if not isinstance(image_url, type(None)):
+                image_url = image_url['src']
+                embed.set_image(url=image_url)
+            await ctx.send(embed=embed)
+            # try:
+            # profile = soup.find(class_='description')
+            # ld_message = ''
+            # for tag in profile:
+            #     if tag.name != 'h2' and tag.name is not None:
+            #         ld_message += tag.text + '\n'
+            # await ctx.send(ld_message)
+            # except AttributeError:
+            #     await ctx.send(f'Stock Analysis does not have a description for {ticker}')
+            await message.delete()
+        else:
+            await ctx.send(f'Ticker not found for {ticker}')
+            await message.delete()
 
     @commands.command(aliases=['wsjd'])
     async def wsj_description(self, ctx, ticker):
