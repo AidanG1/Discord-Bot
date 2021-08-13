@@ -1,4 +1,4 @@
-import discord, requests, os, random, asyncio
+import discord, requests, os, random, hashlib
 from bs4 import BeautifulSoup
 from discord_components import Button
 from discord.ext import commands
@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from replit import db
 from random import randrange
 from time import perf_counter
+from discord.errors import NotFound
 
 load_dotenv()
 
@@ -218,43 +219,85 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         embed.set_image(url=result['img'])
         await ctx.send(embed=embed)
 
+    async def anon_message_function(self,bot,ctx,channel,message_text,vanon_boolean,vanon_id,vanon_password):
+        if channel not in [
+                '833788929525678149', '787079371454283796',
+                '787077776724590663', '796589258382114836',
+                '787562168852676629', '796518787628400660',
+        ]: # these channels have been chosen so there is no spamming
+            await ctx.send('You cannot send messages in that channel')
+            return
+
+        message_channel = bot.get_channel(int(channel))
+        anon_message = message_text
+        anon_message += '\n\n**All confessions are anonymous. Rice bot has public code which is available using the ^code command**'
+        if vanon_boolean:
+            db_key = 'anon_password_' + vanon_id
+            if db_key not in db:
+                await ctx.send('A message of that id has not been sent anonymously with Rice Bot.')
+                return
+            hashed_password = db[db_key]
+            hashed_vanon_password = hashlib.sha256(vanon_password.encode()).hexdigest()
+            if hashed_password == hashed_vanon_password:
+                await ctx.send('Your password matches!')
+                try:
+                    msg = await message_channel.fetch_message(int(vanon_id))
+                except NotFound:
+                    await ctx.send('Message not sent: a verified message must be sent in the same channel as the original message.')
+                    return
+                msg_number = msg.embeds[0].title[12:17]
+                anon_message = f'*This message has been verified to be from the author of {msg_number}*\n\n' + anon_message
+                # https://discord.com/channels/787069146852360233/{channel}/{vanon_id}
+            else:
+                await ctx.send('Your password does not match.')
+                return
+        messages = [
+            anon_message[i:i + 4096]
+            for i in range(0, len(anon_message), 4096)
+        ]
+        embeds = []
+        colors = [
+            random.randrange(0, 255),
+            random.randrange(0, 255),
+            random.randrange(0, 255)
+        ]
+        message_number = db["anon_message"] + db["frq_anon_message"] + db["frq_verified_anon_message"]
+        if vanon_boolean:
+            message_number -= 1
+        for i, anon_message_part in enumerate(messages):
+            title = f'Anon message #{message_number} Part {i+1} of {len(messages)}'
+            embeds.append(
+                discord.Embed(title=title,
+                                description=anon_message_part,
+                                color=discord.Color.from_rgb(
+                                    colors[0], colors[1], colors[2])))
+        for embed in embeds:
+            if vanon_boolean:
+                channel_message_sent = await msg.reply(embed=embed)
+            else:
+                channel_message_sent = await message_channel.send(embed=embed)
+        allowed_chars = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+        password = ''.join(random.choice(allowed_chars) for x in range(10))
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        db['anon_password_' + str(channel_message_sent.id)] = hashed_password
+        await ctx.send(
+            f'**Message #{message_number} sent**'
+        )
+        await ctx.send(f'For future verification, use ```^vanon {channel_message_sent.id} {password} {channel} message text``` to send a verified message from the author of #{message_number}')
+
     @commands.command(aliases=['anon', 'confess'])
     async def anon_message(self, ctx, channel, *, arg):
         '''
         Send an anonymous message to any channel using the id
         '''
-        if channel in [
-                '833788929525678149', '787079371454283796',
-                '787077776724590663', '796589258382114836',
-                '787562168852676629', '796518787628400660'
-        ]:
-            message_channel = self.bot.get_channel(int(channel))
-            anon_message = arg
-            anon_message += '\n**All confessions are anonymous. Rice bot has public code which is available using the ^code command**'
-            messages = [
-                anon_message[i:i + 4096]
-                for i in range(0, len(anon_message), 4096)
-            ]
-            embeds = []
-            colors = [
-                random.randrange(0, 255),
-                random.randrange(0, 255),
-                random.randrange(0, 255)
-            ]
-            for i, anon_message_part in enumerate(messages):
-                title = f'Anon message #{db["anon_message"] + db["frq_anon_message"]} Part {i+1} of {len(messages)}'
-                embeds.append(
-                    discord.Embed(title=title,
-                                  description=anon_message_part,
-                                  color=discord.Color.from_rgb(
-                                      colors[0], colors[1], colors[2])))
-            for embed in embeds:
-                await message_channel.send(embed=embed)
-            await ctx.send(
-                f'Message #{db["anon_message"] + db["frq_anon_message"] - 1} sent'
-            )
-        else:
-            await ctx.send('You cannot send messages in that channel')
+        await self.anon_message_function(self.bot,ctx,channel,arg,False,0,'')
+
+    @commands.command(aliases=['vanon'])
+    async def verified_anon_message(self, ctx, message_id, password, channel, *, arg):
+        '''
+        Send a verified anonymous message to the same channel as a previous anonymous message using the id
+        '''
+        await self.anon_message_function(self.bot,ctx,channel,arg,True,message_id,password)
 
 
 def setup(bot):
