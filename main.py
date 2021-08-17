@@ -44,16 +44,14 @@ async def on_ready():
     countdown_till_o_week.start()
 
 
-@tasks.loop(hours=24)
+@tasks.loop(hours=1)
 async def countdown_till_o_week():
     message_channel = bot.get_channel(787069147359608848)
-    o_week_date = datetime.date(2021, 8, 15)
-    current_date = datetime.date.today()
+    o_week_date = datetime.datetime(2021, 8, 15, 13,5,0)
+    current_date = datetime.datetime.now()
     delta = o_week_date - current_date
-    print(f'{abs(delta.days)} days until OwOweek!')
-    message = await message_channel.send(
-        f'{abs(delta.days)} days until OwOweek!')
-    await message.add_reaction('1️:partying_face:')
+    message = await message_channel.send(f'{round(abs(delta.seconds)/3600,0)} hours until OwOweek')
+   # await message.add_reaction('1️:partying_face:')
     pce_channel = bot.get_channel(787069147359608848)
     # await pce_channel.invoke(bot.get_command('wikipedia_most_viewed'))
 
@@ -63,8 +61,8 @@ async def before_countdown_till_o_week():
     for _ in range(60 * 60 * 24):  # loop the whole day
         dt_full = datetime.datetime.now()
         print(dt_full)
-        if dt_full.hour == 14 and dt_full.minute == 00:  # 24 hour format
-            print('correct time')
+        if dt_full.minute == 5:  # 24 hour format
+            print('Correct time')
             return
         await asyncio.sleep(30)
 
