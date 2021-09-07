@@ -1,4 +1,4 @@
-import discord, requests, os, random, hashlib
+import discord, requests, os, random, hashlib, cryptocode
 from bs4 import BeautifulSoup
 from discord_components import Button
 from discord.ext import commands
@@ -240,7 +240,7 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
             return
         message_channel = bot.get_channel(int(channel))
         anon_message = message_text
-        anon_message += '\n\n**All confessions are anonymous. Rice Bot has public code which is available using the ^code command**'
+        anon_message += f'\n\n**All confessions are anonymous. Rice Bot has public code which is available using the ^code command**'
         if vanon_boolean:
             db_key = 'anon_password_' + vanon_id
             if db_key not in db:
@@ -270,10 +270,10 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
             else:
                 await ctx.send('Your password does not match.')
                 return
-        messages = [
-            anon_message[i:i + 4096] for i in range(0, len(anon_message), 4096)
-        ]
-        embeds = []
+        # messages = [
+        #     anon_message[i:i + 4096] for i in range(0, len(anon_message), 4096)
+        # ]
+        # embeds = []
         colors = [
             random.randrange(0, 255),
             random.randrange(0, 255),
@@ -282,38 +282,47 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         message_number = db["anon_message"] + db["frq_anon_message"] + db["frq_verified_anon_message"]
         if vanon_boolean:
             message_number -= 1
-        for i, anon_message_part in enumerate(messages):
-            title = f'Anon message #{message_number} Part {i+1} of {len(messages)}'
-            embeds.append(
-                discord.Embed(title=title,
-                              description=anon_message_part,
-                              color=discord.Color.from_rgb(
-                                  colors[0], colors[1], colors[2])))
-        for embed in embeds:
-            if vanon_boolean:
-                channel_message_sent = await msg.reply(embed=embed)
-            else:
-                channel_message_sent = await message_channel.send(embed=embed)
+        # for i, anon_message_part in enumerate(messages):
+        #     title = f'Anon message #{message_number} Part {i+1} of {len(messages)}'
+        #     embeds.append(
+        #         discord.Embed(title=title,
+        #                       description=anon_message_part,
+        #                       color=discord.Color.from_rgb(
+        #                           colors[0], colors[1], colors[2])))
+        # for embed in embeds:
+        #     if vanon_boolean:
+        #         channel_message_sent = await msg.reply(embed=embed)
+        #     else:
+        #         channel_message_sent = await message_channel.send(embed=embed)
+        title = f'Anon message #{message_number}'
+        if vanon_boolean:
+            channel_message_sent = await msg.reply(title)
+        else:
+            channel_message_sent = await message_channel.send(title)
         allowed_chars = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
         password = ''.join(random.choice(allowed_chars) for x in range(10))
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         db['anon_password_' + str(channel_message_sent.id)] = hashed_password
         await ctx.send(f'**Message #{message_number} sent**')
         await ctx.send(
-            f'For future verification, use ```^vanon {channel_message_sent.id} {password} {channel} message text``` to send a verified message from the author of #{message_number}\n\nTo view the inbox for this message use ```^ianon {channel_message_sent.id} {password}```\nUsers can be added to this inbox through ```^canon {channel_message_sent.id}```'
+            f'For future verification, use ```^vanon {channel_message_sent.id} {password} {channel} message text``` to send a verified message from the author of #{message_number}\n\nTo view the inbox for this message use ```^ianon {channel_message_sent.id} {password}```'
         )
+        anon_message += f'\nUsers can be added to this inbox through ```^canon {channel_message_sent.id}```'
+        embed = discord.Embed(title=title,
+                            description=anon_message,
+                            color=discord.Color.from_rgb(
+                                colors[0], colors[1], colors[2]))
+        await channel_message_sent.edit(content='', embed=embed)
 
     @commands.command(aliases=['anon', 'confess'])
     async def anon_message(self, ctx, channel, *, arg):
         '''
         Send an anonymous message to any channel using the id
         '''
-        await self.anon_message_function(self.bot, ctx, channel, arg, False, 0,
-                                         '')
+        await self.anon_message_function(self.bot, ctx, channel, arg, False, 0, '')
 
     @commands.command(aliases=['vanon'])
-    async def verified_anon_message(self, ctx, message_id, password, channel,
-                                    *, arg):
+    async def verified_anon_message(self, ctx, message_id, password, channel,*, arg):
         '''
         Send a verified anonymous message to the same channel as a previous anonymous message using the id
         '''
@@ -324,36 +333,41 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         '''
         Add your username to the contact inbox for a specific message
         '''
+        if 'anon_password_' + message_id not in db:
+            await ctx.send(
+                'A message of that id has not been sent anonymously with Rice Bot.'
+            )
+            return
         def check(msg):
             return msg.author == ctx.author and msg.channel == ctx.channel
         await ctx.send(
-            f'Please confirm that you wish to be added to the inbox for {message_id} by responding with **Y**.\n\nYour username will be visible to the author of {message_id} if they check their inbox. Your username will also be saved in the Rice Bot database.'
+            f'Please confirm that you wish to be added to the inbox for {message_id} by responding with **Y**.\n\nYour username will be visible to the author of {message_id} if they check their inbox. Your username will also be encrypted and saved in the Rice Bot database using symmetric-key encryption.'
         )
         msg = await self.bot.wait_for('message', check=check, timeout=30)
         if msg.content.lower() in ['yes', 'y']:
             added = True
             db_key = f'anon_inbox_{message_id}'
+            author_string = cryptocode.encrypt(str(ctx.author).replace('#', ''), os.getenv('simplecrypt-key'))
             if db_key in db:
-                if str(ctx.author).replace('#', '') in db[db_key]:
+                unencrypted_db = [cryptocode.decrypt(user, os.getenv('simplecrypt-key')) for user in db[db_key]]
+                unencrpyted_author_string = str(ctx.author).replace('#', '')
+                if unencrpyted_author_string in unencrypted_db:
                     db_value = db[db_key]
-                    db_value.remove(str(ctx.author).replace('#', ''))
+                    del db_value[unencrypted_db.index(unencrpyted_author_string)]
                     db[db_key] = db_value
                     added = False
                 else:
                     db_value = db[db_key]
-                    db_value.append(str(ctx.author).replace('#', ''))
+                    db_value.append(author_string)
                     db[db_key] = db_value
             else:
-                db[db_key] = [str(ctx.author).replace('#', '')]
+                db[db_key] = [author_string]
             if added:
                 await ctx.send(
                     f"{ctx.author} has been added to the inbox for {message_id}.")
             else:
                 await ctx.send(
                     f"{ctx.author} has been removed from the inbox for {message_id} because you were already in it.")
-            print('hi5')
-            print(db[db_key])
-            print('hi6')
         else:
             await ctx.send(
                 f"{ctx.author} has not been added to the inbox for {message_id}.")
@@ -376,7 +390,8 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
             await ctx.send('Your password matches!')
             db_key_inbox = f'anon_inbox_{message_id}'
             if db_key_inbox in db:
-                users = [f'{user[:-4]}#{user[-4:]}' for user in db[db_key_inbox]]
+                users = [cryptocode.decrypt(user, os.getenv('simplecrypt-key')) for user in db[db_key_inbox]]
+                users = [f'{user[:-4]}#{user[-4:]}' for user in users]
                 message_to_send = '\n'.join(users)
                 message_to_send += '\n\n**The users in your inbox do not know if you check your inbox. It is your choice to contact them.\nAll confessions are anonymous. Rice Bot has public code which is available using the ^code command**'
                 colors = [
@@ -388,9 +403,6 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
                               description=message_to_send,
                               color=discord.Color.from_rgb(
                                   colors[0], colors[1], colors[2])))
-                print('hi3')
-                print(db[db_key_inbox])
-                print('hi4')
             else:
                 await ctx.send(
                     f'There are no users in the inbox for {message_id}')
