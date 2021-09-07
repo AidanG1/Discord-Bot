@@ -94,5 +94,13 @@ tweets = [
     "Imagine being a portfolio manager and spending hundreds of hours of your life analyzing stocks only to outperform the S&P 500 by 2% when you could've just invested in dogecoin and been up 4,200% YTD",
     'Peter Thiel has a $5 billion tax free pot of money in his Roth-IRA after building PayPal, Palantir, and running his own venture capital fund. If he had simply grown and sold tomatoes, he would have a $10 billion pot of money. Scale matters. Few understand this.',
     'If I had a $5 billion Roth-IRA I would blow it all on out-of-the-money options',
-    'Crypto\nCrypt\nCryp\nCry :cry:'
+    'Crypto\nCrypt\nCryp\nCry :cry:',
+    'BREAKING: Nancy Pelosi reportedly bought $3,000,000 of call options on the Taliban just hours before they stormed Afghanistan.',
+    'OnlyFans banning porn is like LinkedIn banning obnoxious humblebrags',
+    'OnlyFans without porn is like Dr. Parik Patel without the BA, CFA, ACCA Esq.',
+    'You’ve just taken over a country. Do you?\na) fix the treasury\nb) rebuild the army\nc) ride bumper cars with an m-16',
+    'Have we tried simply getting a group of celebrities to make a motivational video asking the Taliban to stop',
+    "The secret to becoming extremely wealthy isn't saving and investing. It's selling a JPEG of a rock for $200,000.",
+    'Every CNBC market headline is like stocks rise/fall because [COVID / inflation / interest rates]',
+    "I can't wait till Robinhood suspends trading on its own stock for going down"
 ]

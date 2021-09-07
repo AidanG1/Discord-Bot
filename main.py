@@ -41,28 +41,26 @@ async def on_ready():
     print(f'Bot connected as {bot.user}')
     await bot.change_presence(activity=discord.Activity(
         type=discord.ActivityType.listening, name="^help"))
-    countdown_till_o_week.start()
+    # countdown_till_o_week.start()
 
 
-@tasks.loop(hours=1)
+@tasks.loop(hours=24)
 async def countdown_till_o_week():
     message_channel = bot.get_channel(787069147359608848)
-    o_week_date = datetime.datetime(2021, 8, 15, 13,5,0)
-    current_date = datetime.datetime.now()
+    o_week_date = datetime.date(2022, 4, 9)
+    current_date = datetime.date.today()
     delta = o_week_date - current_date
-    message = await message_channel.send(f'{round(abs(delta.seconds)/3600,0)} hours until OwOweek')
-   # await message.add_reaction('1️:partying_face:')
-    pce_channel = bot.get_channel(787069147359608848)
-    # await pce_channel.invoke(bot.get_command('wikipedia_most_viewed'))
-
-
+    print(f'{abs(delta.days)} days until Beer Bike!')
+    message = await message_channel.send(
+        f'{abs(delta.days)} days until Beer Bike!')
+    await message.add_reaction('1️:partying_face:')
 @countdown_till_o_week.before_loop
 async def before_countdown_till_o_week():
     for _ in range(60 * 60 * 24):  # loop the whole day
         dt_full = datetime.datetime.now()
         print(dt_full)
-        if dt_full.minute == 5:  # 24 hour format
-            print('Correct time')
+        if dt_full.hour == 14 and dt_full.minute == 00:  # 24 hour format
+            print('correct time')
             return
         await asyncio.sleep(30)
 
@@ -258,7 +256,7 @@ async def change_presence(ctx, type, *, arg):
 
 
 @bot.command(aliases=['ce', 'wce'])
-@commands.has_role('Admins')
+# @commands.has_role('Admins')
 async def wordCounter_enabled(ctx):
     '''
     Admin only command to change whether the bruh counter is enabled

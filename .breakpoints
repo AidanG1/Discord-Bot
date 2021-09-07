@@ -1,13 +1,5 @@
 {
   "files": {
-    "cogs/cool_cog.py": [
-      {
-        "id": "d747cfd3-8eb4-4b4a-a6d0-50c5c5ddc028",
-        "line": 293,
-        "version": 7738,
-        "index": 12618
-      }
-    ],
     "cogs/lyrics_cog.pyc": [
       {
         "id": "9c58e308-3ab1-4891-9bce-1b529f95f687",

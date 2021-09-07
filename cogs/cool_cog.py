@@ -166,12 +166,15 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         for message in channel_history:
             word_count = message.content.lower().count(word)
             if word_count > 0:
-                author = message.author.display_name.replace('||', '| |').replace('**', '* *').replace('__', '_ _')
+                author = message.author.display_name.replace(
+                    '||', '| |').replace('**', '* *').replace('__', '_ _')
                 if author in count_dict:
                     count_dict[author] += word_count
                 else:
                     count_dict[author] = word_count
-        count_list = sorted(list(count_dict.items()),key=lambda x: x[1], reverse=True)[0:10]
+        count_list = sorted(list(count_dict.items()),
+                            key=lambda x: x[1],
+                            reverse=True)[0:10]
         user = ''
         counts = ''
         for value in count_list:
@@ -179,16 +182,23 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
             counts += f"{value[1]}\n"
         if len(user) + len(counts) > 1024:
             await ctx.send(
-                'Message too long. Decrease the count for the message to send.')
+                'Message too long. Decrease the count for the message to send.'
+            )
         else:
-            embed = discord.Embed(title=f'"{word.title()}" Count over {limit} most recent messages on #{ctx.channel.name}',
-                                color=discord.Color.gold())
+            embed = discord.Embed(
+                title=
+                f'"{word.title()}" Count over {limit} most recent messages on #{ctx.channel.name}',
+                color=discord.Color.gold())
             embed.add_field(name='User', value=user, inline=True)
-            embed.add_field(name=f'{word.title()} Count', value=counts, inline=True)
+            embed.add_field(name=f'{word.title()} Count',
+                            value=counts,
+                            inline=True)
             await ctx.send(embed=embed)
         await loading_message.delete()
-        total_time = perf_counter()-timer
-        await ctx.send(f'Execution time: {round(total_time,2)} seconds. Iterated through {round(limit/total_time,4)} messages per second.')
+        total_time = perf_counter() - timer
+        await ctx.send(
+            f'Execution time: {round(total_time,2)} seconds. Iterated through {round(limit/total_time,4)} messages per second.'
+        )
 
     @commands.command(aliases=['cxkcd', 'rxkcd'])
     async def recent_xkcd(self, ctx):
@@ -219,41 +229,49 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         embed.set_image(url=result['img'])
         await ctx.send(embed=embed)
 
-    async def anon_message_function(self,bot,ctx,channel,message_text,vanon_boolean,vanon_id,vanon_password):
+    async def anon_message_function(self, bot, ctx, channel, message_text, vanon_boolean, vanon_id, vanon_password):
         if channel not in [
                 '833788929525678149', '787079371454283796',
                 '787077776724590663', '796589258382114836',
                 '787562168852676629', '796518787628400660',
-        ]: # these channels have been chosen so there is no spamming
+                '882734037762977823', '883921884230602762'
+        ]:  # these channels have been chosen so there is no spamming
             await ctx.send('You cannot send messages in that channel')
             return
-
         message_channel = bot.get_channel(int(channel))
         anon_message = message_text
-        anon_message += '\n\n**All confessions are anonymous. Rice bot has public code which is available using the ^code command**'
+        anon_message += '\n\n**All confessions are anonymous. Rice Bot has public code which is available using the ^code command**'
         if vanon_boolean:
             db_key = 'anon_password_' + vanon_id
             if db_key not in db:
-                await ctx.send('A message of that id has not been sent anonymously with Rice Bot.')
+                await ctx.send(
+                    'A message of that id has not been sent anonymously with Rice Bot.'
+                )
                 return
             hashed_password = db[db_key]
-            hashed_vanon_password = hashlib.sha256(vanon_password.encode()).hexdigest()
+            hashed_vanon_password = hashlib.sha256(
+                vanon_password.encode()).hexdigest()
             if hashed_password == hashed_vanon_password:
                 await ctx.send('Your password matches!')
                 try:
                     msg = await message_channel.fetch_message(int(vanon_id))
                 except NotFound:
-                    await ctx.send('Message not sent: a verified message must be sent in the same channel as the original message.')
+                    await ctx.send(
+                        'Message not sent: a verified message must be sent in the same channel as the original message.'
+                    )
                     return
-                msg_number = msg.embeds[0].title[12:17]
-                anon_message = f'*This message has been verified to be from the author of {msg_number}*\n\n' + anon_message
+                msg_number = msg.embeds[0].title[12:20]
+                msg_number_correct = [
+                    character for character in msg_number
+                    if character.isdigit()
+                ]
+                anon_message = f'*This message has been verified to be from the author of #{"".join(msg_number_correct)}*\n\n' + anon_message
                 # https://discord.com/channels/787069146852360233/{channel}/{vanon_id}
             else:
                 await ctx.send('Your password does not match.')
                 return
         messages = [
-            anon_message[i:i + 4096]
-            for i in range(0, len(anon_message), 4096)
+            anon_message[i:i + 4096] for i in range(0, len(anon_message), 4096)
         ]
         embeds = []
         colors = [
@@ -268,9 +286,9 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
             title = f'Anon message #{message_number} Part {i+1} of {len(messages)}'
             embeds.append(
                 discord.Embed(title=title,
-                                description=anon_message_part,
-                                color=discord.Color.from_rgb(
-                                    colors[0], colors[1], colors[2])))
+                              description=anon_message_part,
+                              color=discord.Color.from_rgb(
+                                  colors[0], colors[1], colors[2])))
         for embed in embeds:
             if vanon_boolean:
                 channel_message_sent = await msg.reply(embed=embed)
@@ -280,24 +298,105 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         password = ''.join(random.choice(allowed_chars) for x in range(10))
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         db['anon_password_' + str(channel_message_sent.id)] = hashed_password
+        await ctx.send(f'**Message #{message_number} sent**')
         await ctx.send(
-            f'**Message #{message_number} sent**'
+            f'For future verification, use ```^vanon {channel_message_sent.id} {password} {channel} message text``` to send a verified message from the author of #{message_number}\n\nTo view the inbox for this message use ```^ianon {channel_message_sent.id} {password}```\nUsers can be added to this inbox through ```^canon {channel_message_sent.id}```'
         )
-        await ctx.send(f'For future verification, use ```^vanon {channel_message_sent.id} {password} {channel} message text``` to send a verified message from the author of #{message_number}')
 
     @commands.command(aliases=['anon', 'confess'])
     async def anon_message(self, ctx, channel, *, arg):
         '''
         Send an anonymous message to any channel using the id
         '''
-        await self.anon_message_function(self.bot,ctx,channel,arg,False,0,'')
+        await self.anon_message_function(self.bot, ctx, channel, arg, False, 0,
+                                         '')
 
     @commands.command(aliases=['vanon'])
-    async def verified_anon_message(self, ctx, message_id, password, channel, *, arg):
+    async def verified_anon_message(self, ctx, message_id, password, channel,
+                                    *, arg):
         '''
         Send a verified anonymous message to the same channel as a previous anonymous message using the id
         '''
-        await self.anon_message_function(self.bot,ctx,channel,arg,True,message_id,password)
+        await self.anon_message_function(self.bot, ctx, channel, arg, True, message_id, password)
+
+    @commands.command(aliases=['canon', 'anonc'])
+    async def connect_anonymous(self, ctx, message_id):
+        '''
+        Add your username to the contact inbox for a specific message
+        '''
+        def check(msg):
+            return msg.author == ctx.author and msg.channel == ctx.channel
+        await ctx.send(
+            f'Please confirm that you wish to be added to the inbox for {message_id} by responding with **Y**.\n\nYour username will be visible to the author of {message_id} if they check their inbox. Your username will also be saved in the Rice Bot database.'
+        )
+        msg = await self.bot.wait_for('message', check=check, timeout=30)
+        if msg.content.lower() in ['yes', 'y']:
+            added = True
+            db_key = f'anon_inbox_{message_id}'
+            if db_key in db:
+                if str(ctx.author).replace('#', '') in db[db_key]:
+                    db_value = db[db_key]
+                    db_value.remove(str(ctx.author).replace('#', ''))
+                    db[db_key] = db_value
+                    added = False
+                else:
+                    db_value = db[db_key]
+                    db_value.append(str(ctx.author).replace('#', ''))
+                    db[db_key] = db_value
+            else:
+                db[db_key] = [str(ctx.author).replace('#', '')]
+            if added:
+                await ctx.send(
+                    f"{ctx.author} has been added to the inbox for {message_id}.")
+            else:
+                await ctx.send(
+                    f"{ctx.author} has been removed from the inbox for {message_id} because you were already in it.")
+            print('hi5')
+            print(db[db_key])
+            print('hi6')
+        else:
+            await ctx.send(
+                f"{ctx.author} has not been added to the inbox for {message_id}.")
+                    
+
+    @commands.command(aliases=['ianon'])
+    async def anonymous_inbox(self, ctx, message_id, password):
+        '''
+        Add your username to the contact inbox for a specific message
+        '''
+        db_key = 'anon_password_' + message_id
+        if db_key not in db:
+            await ctx.send(
+                'A message of that id has not been sent anonymously with Rice Bot.'
+            )
+            return
+        hashed_password = db[db_key]
+        hashed_anon_password = hashlib.sha256(password.encode()).hexdigest()
+        if hashed_password == hashed_anon_password:
+            await ctx.send('Your password matches!')
+            db_key_inbox = f'anon_inbox_{message_id}'
+            if db_key_inbox in db:
+                users = [f'{user[:-4]}#{user[-4:]}' for user in db[db_key_inbox]]
+                message_to_send = '\n'.join(users)
+                message_to_send += '\n\n**The users in your inbox do not know if you check your inbox. It is your choice to contact them.\nAll confessions are anonymous. Rice Bot has public code which is available using the ^code command**'
+                colors = [
+                    random.randrange(0, 255),
+                    random.randrange(0, 255),
+                    random.randrange(0, 255)
+                ]
+                await ctx.send(embed=discord.Embed(title=f'Inbox for Message {message_id}',
+                              description=message_to_send,
+                              color=discord.Color.from_rgb(
+                                  colors[0], colors[1], colors[2])))
+                print('hi3')
+                print(db[db_key_inbox])
+                print('hi4')
+            else:
+                await ctx.send(
+                    f'There are no users in the inbox for {message_id}')
+        else:
+            await ctx.send('Your password does not match.')
+            return
 
 
 def setup(bot):
