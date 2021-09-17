@@ -16,6 +16,7 @@ bs4 = "^0.0.1"
 selenium = "^3.141.0"
 fake-useragent = "^0.1.11"
 discord-components = "^1.1.2"
+cryptocode = "^0.1"
 
 [tool.poetry.dev-dependencies]
 

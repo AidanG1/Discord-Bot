@@ -102,5 +102,12 @@ tweets = [
     'Have we tried simply getting a group of celebrities to make a motivational video asking the Taliban to stop',
     "The secret to becoming extremely wealthy isn't saving and investing. It's selling a JPEG of a rock for $200,000.",
     'Every CNBC market headline is like stocks rise/fall because [COVID / inflation / interest rates]',
-    "I can't wait till Robinhood suspends trading on its own stock for going down"
+    "I can't wait till Robinhood suspends trading on its own stock for going down",
+    'On the 15th September, 2008, Lehman Brothers declared bankruptcy. To honor this tradition, 13 years later, I have been margin called.',
+    "The iPhone 13 is about to be released, which means we're going to see a flood of posts on the timeline telling us how much we could've made if we invested in Apple stock instead of buying the new iPhone",
+    'Lol imagine believing that Walmart would actually accept payments in some obscure cryptocurrency',
+    'Nintendo would make more money selling NFTs of Mario, Bowser and Peach than it would selling games and consoles',
+    "With crypto crashing and everyone needing a job it's time to long McDonald's",
+    'The last time gas was this expensive America invaded Iraq',
+    "You might think that spending $100,000 on a JPEG is crazy but when you consider the discounted value of its future cash flows you'll realize it's actually deep value"
 ]

@@ -20,6 +20,7 @@ TOKEN = os.getenv('TOKEN')
 
 extensions = [
     'cogs.ai_cog',
+    'cogs.anon_cog',
     'cogs.cool_cog',
     'cogs.games_cog',
     'cogs.lyrics_cog',
@@ -42,28 +43,43 @@ async def on_ready():
     await bot.change_presence(activity=discord.Activity(
         type=discord.ActivityType.listening, name="^help"))
     # countdown_till_o_week.start()
+    docstring_reminder.start()
 
 
+# @tasks.loop(hours=24)
+# async def countdown_till_o_week():
+#     message_channel = bot.get_channel(787069147359608848)
+#     o_week_date = datetime.date(2022, 4, 9)
+#     current_date = datetime.date.today()
+#     delta = o_week_date - current_date
+#     print(f'{abs(delta.days)} days until Beer Bike!')
+#     message = await message_channel.send(
+#         f'{abs(delta.days)} days until Beer Bike!')
+#     await message.add_reaction('1️:partying_face:')
+# @countdown_till_o_week.before_loop
+# async def before_countdown_till_o_week():
+#     for _ in range(60 * 60 * 24):  # loop the whole day
+#         dt_full = datetime.datetime.now()
+#         print(dt_full)
+#         if dt_full.hour == 14 and dt_full.minute == 00:  # 24 hour format
+#             print('correct time')
+#             return
+#         await asyncio.sleep(30)
 @tasks.loop(hours=24)
-async def countdown_till_o_week():
-    message_channel = bot.get_channel(787069147359608848)
-    o_week_date = datetime.date(2022, 4, 9)
-    current_date = datetime.date.today()
-    delta = o_week_date - current_date
-    print(f'{abs(delta.days)} days until Beer Bike!')
-    message = await message_channel.send(
-        f'{abs(delta.days)} days until Beer Bike!')
-    await message.add_reaction('1️:partying_face:')
-@countdown_till_o_week.before_loop
-async def before_countdown_till_o_week():
+async def docstring_reminder():
+    message_channel = bot.get_channel(880187153223675945)
+    await message_channel.send(
+        f"Don't forget about docstrings! ||docstrings may or may not be present in the code for this bot||")
+
+@docstring_reminder.before_loop
+async def before_docstring_reminder():
     for _ in range(60 * 60 * 24):  # loop the whole day
         dt_full = datetime.datetime.now()
         print(dt_full)
-        if dt_full.hour == 14 and dt_full.minute == 00:  # 24 hour format
+        if dt_full.hour == 21 and dt_full.minute == 32:  # 24 hour format
             print('correct time')
             return
         await asyncio.sleep(30)
-
 
 @bot.event
 async def on_message(message):

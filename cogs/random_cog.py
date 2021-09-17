@@ -128,7 +128,7 @@ class RandomCommands(commands.Cog, name='Random Commands'):
                 await ctx.send('Your two numbers cannot be the same')
             else:
                 await ctx.send(
-                    f'Your number is {random.randrange(low_num, high_num)}')
+                    f'Your number is {"{:,}".format(random.randrange(low_num, high_num+1))}')
         except TypeError:
             await ctx.send('Enter an integer')
 
