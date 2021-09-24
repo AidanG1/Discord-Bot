@@ -17,15 +17,37 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
         self.bot = bot
 
     async def anon_message_function(self, bot, ctx, channel, message_text, vanon_boolean, vanon_id, vanon_password):
-        if channel not in [
-                '833788929525678149', '787079371454283796',
-                '787077776724590663', '796589258382114836',
-                '787562168852676629', '796518787628400660',
-                '882734037762977823', '883921884230602762'
-        ]:  # these channels have been chosen so there is no spamming
-            await ctx.send('You cannot send messages in that channel')
-            return
-        message_channel = bot.get_channel(int(channel))
+        try:
+            channel=int(channel)
+        except ValueError:
+            channel = channel.lower()
+            channel_keys = {
+                'confessions': 833788929525678149,
+                'confession': 833788929525678149,
+                'confess': 833788929525678149,
+                'horny-confessions': 883921884230602762,
+                'horny-confession': 883921884230602762,
+                'bots': 787079371454283796,
+                'lgbtq': 787562168852676629,
+                'politics-and-current-events': 796518787628400660,
+                'politics': 796518787628400660,
+                'ask-rice': 787077776724590663,
+                'pre-health': 796589258382114836,
+                'ask-rice': 787077776724590663,
+                'class-rants': 882734037762977823,
+                'rants': 882734037762977823,
+                }
+            if channel in channel_keys:
+                channel = channel_keys[channel]
+            if channel not in [
+                    833788929525678149, 787079371454283796,
+                    787077776724590663, 796589258382114836,
+                    787562168852676629, 796518787628400660,
+                    882734037762977823, 883921884230602762,
+            ]:  # these channels have been chosen so there is no spamming
+                await ctx.send('You cannot send messages in that channel')
+                return
+        message_channel = bot.get_channel(channel)
         anon_message = message_text
         anon_message += f'\n\n**All confessions are anonymous. Rice Bot has public code which is available using the ^code command**'
         if vanon_boolean:

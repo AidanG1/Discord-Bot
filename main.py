@@ -65,18 +65,18 @@ async def on_ready():
 #             print('correct time')
 #             return
 #         await asyncio.sleep(30)
-@tasks.loop(hours=24)
+@tasks.loop(hours=23)
 async def docstring_reminder():
     message_channel = bot.get_channel(880187153223675945)
     await message_channel.send(
-        f"Don't forget about docstrings! ||docstrings may or may not be present in the code for this bot||")
+        f"Don't forget about docstrings!")
 
 @docstring_reminder.before_loop
 async def before_docstring_reminder():
     for _ in range(60 * 60 * 24):  # loop the whole day
         dt_full = datetime.datetime.now()
         print(dt_full)
-        if dt_full.hour == 21 and dt_full.minute == 32:  # 24 hour format
+        if dt_full.hour == 21 and dt_full.minute == 40:  # 24 hour format
             print('correct time')
             return
         await asyncio.sleep(30)
