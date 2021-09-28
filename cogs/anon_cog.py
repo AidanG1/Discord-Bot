@@ -25,17 +25,25 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
                 'confessions': 833788929525678149,
                 'confession': 833788929525678149,
                 'confess': 833788929525678149,
+                'c': 833788929525678149,
                 'horny-confessions': 883921884230602762,
                 'horny-confession': 883921884230602762,
+                'hc': 883921884230602762,
                 'bots': 787079371454283796,
+                'b': 787079371454283796,
                 'lgbtq': 787562168852676629,
                 'politics-and-current-events': 796518787628400660,
                 'politics': 796518787628400660,
+                'pce': 796518787628400660,
                 'ask-rice': 787077776724590663,
+                'ask': 787077776724590663,
+                'ar': 787077776724590663,
                 'pre-health': 796589258382114836,
-                'ask-rice': 787077776724590663,
+                'health': 796589258382114836,
+                'ph': 796589258382114836,
                 'class-rants': 882734037762977823,
                 'rants': 882734037762977823,
+                'cr': 882734037762977823,
                 }
             if channel in channel_keys:
                 channel = channel_keys[channel]
@@ -112,11 +120,19 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
         password = ''.join(random.choice(allowed_chars) for x in range(10))
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         db['anon_password_' + str(channel_message_sent.id)] = hashed_password
+        channel_id = channel_message_sent.id
+        print(channel_id)
+        if vanon_boolean:
+            channel_id = vanon_id
         await ctx.send(f'**Message #{message_number} sent**')
-        await ctx.send(
-            f'For future verification, use ```^vanon {channel_message_sent.id} {password} {channel} message text``` to send a verified message from the author of #{message_number}\n\nTo view the inbox for this message use ```^ianon {channel_message_sent.id} {password}```'
-        )
-        anon_message += f'\nUsers can be added to this inbox through ```^canon {channel_message_sent.id}```'
+        message_instructions = f'For future verification, use ```^vanon {channel_message_sent.id} {password} {channel} message text``` to send a verified message from the author of #{message_number}'
+        if vanon_boolean:
+            message_instructions += f'\n\nTo view the inbox for this message use the password from your previous verified message ```^ianon {channel_id} previous_password```'
+        else:
+            message_instructions += f'\n\nTo view the inbox for this message use ```^ianon {channel_id} {password}```'
+        
+        await ctx.send(message_instructions)
+        anon_message += f'\nUsers can be added to this inbox through ```^canon {channel_id}```'
         embed = discord.Embed(title=title,
                             description=anon_message,
                             color=discord.Color.from_rgb(
