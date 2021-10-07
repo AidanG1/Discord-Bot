@@ -96,7 +96,7 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
             random.randrange(0, 255),
             random.randrange(0, 255)
         ]
-        message_number = db["anon_message"] + db["frq_anon_message"] + db["frq_verified_anon_message"]
+        message_number = db["anon_message"] + db["frq_anon_message"] + db["frq_verified_anon_message"] + db['frq_reply_anon_message']
         if vanon_boolean:
             message_number -= 1
         # for i, anon_message_part in enumerate(messages):
