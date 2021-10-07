@@ -270,6 +270,15 @@ async def change_presence(ctx, type, *, arg):
         await bot.change_presence(activity=discord.Activity(
             type=discord.ActivityType.watching, name=phrase))
 
+# @bot.command(aliases=['sm'])
+# @commands.has_role('Admins')
+# async def send_message(ctx, channel, *, arg):
+#     '''
+#     Admin only command to send a message
+#     '''
+#     message_channel = bot.get_channel(int(channel))
+#     await message_channel.send(arg)
+#     await ctx.send('Sent')
 
 @bot.command(aliases=['ce', 'wce'])
 # @commands.has_role('Admins')

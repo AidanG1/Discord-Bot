@@ -16,7 +16,7 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
     def __init__(self, bot):
         self.bot = bot
 
-    async def anon_message_function(self, bot, ctx, channel, message_text, vanon_boolean, vanon_id, vanon_password):
+    async def anon_message_function(self, bot, ctx, channel, message_text, vanon_boolean, vanon_id, vanon_password, ranon_id):
         try:
             channel=int(channel)
         except ValueError:
@@ -114,6 +114,9 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
         title = f'Anon message #{message_number}'
         if vanon_boolean:
             channel_message_sent = await msg.reply(title)
+        elif ranon_id != '':
+            msg = await message_channel.fetch_message(int(ranon_id))
+            channel_message_sent = await msg.reply(title)
         else:
             channel_message_sent = await message_channel.send(title)
         allowed_chars = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
@@ -121,7 +124,6 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         db['anon_password_' + str(channel_message_sent.id)] = hashed_password
         channel_id = channel_message_sent.id
-        print(channel_id)
         if vanon_boolean:
             channel_id = vanon_id
         await ctx.send(f'**Message #{message_number} sent**')
@@ -142,16 +144,23 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
     @commands.command(aliases=['anon', 'confess'])
     async def anon_message(self, ctx, channel, *, arg):
         '''
-        Send an anonymous message to any channel using the id
+        Send an anonymous message
         '''
-        await self.anon_message_function(self.bot, ctx, channel, arg, False, 0, '')
+        await self.anon_message_function(self.bot, ctx, channel, arg, False, 0, '', '')
 
     @commands.command(aliases=['vanon'])
     async def verified_anon_message(self, ctx, message_id, password, channel,*, arg):
         '''
-        Send a verified anonymous message to the same channel as a previous anonymous message using the id
+        Send a verified anonymous message to the same channel as a previous anonymous message
         '''
-        await self.anon_message_function(self.bot, ctx, channel, arg, True, message_id, password)
+        await self.anon_message_function(self.bot, ctx, channel, arg, True, message_id, password, '')
+
+    @commands.command(aliases=['ranon'])
+    async def reply_anon_message(self, ctx, channel, message_id,*, arg):
+        '''
+        Send an anonymous message to the same channel as a previous anonymous message 
+        '''
+        await self.anon_message_function(self.bot, ctx, channel, arg, False, 0, '', message_id)
 
     @commands.command(aliases=['canon', 'anonc'])
     async def connect_anonymous(self, ctx, message_id):
