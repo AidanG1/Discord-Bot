@@ -7,6 +7,8 @@ from replit import db
 from random import randrange
 from time import perf_counter
 from discord.errors import NotFound
+from discord_slash import cog_ext, SlashContext
+guild_ids = [787069146852360233, 880161580443111455]
 
 load_dotenv()
 
@@ -128,12 +130,8 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         embed.set_image(url=result['media'][0]['media-metadata'][2]['url'])
         await ctx.send(embed=embed)
         await message.delete()
-
-    @commands.command(aliases=['apod', 'space', 'space_picture'])
-    async def astronomy_picture(self, ctx):
-        '''
-        NASA Astronomy picture of the day
-        '''
+        
+    async def astronomy_picture_function(self, ctx):
         r = requests.get('https://api.nasa.gov/planetary/apod?api_key=' +
                          os.getenv('nasa-key'))
         result = r.json()
@@ -145,6 +143,18 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         embed.set_image(url=result['url'])
         await ctx.send(embed=embed)
 
+
+    @commands.command(aliases=['apod', 'space', 'space_picture'])
+    async def astronomy_picture(self, ctx):
+        '''
+        NASA Astronomy picture of the day
+        '''
+        await self.astronomy_picture_function(ctx)
+
+    @cog_ext.cog_slash(name="astronomy_picture", description='NASA Astronomy picture of the day', guild_ids=guild_ids)
+    async def slash_astronomy_picture(self, ctx: SlashContext):
+        await self.astronomy_picture_function(ctx)
+
     @commands.command(aliases=['disc'])
     async def disclaimer(self, ctx, *, arg='A'):
         '''
@@ -152,6 +162,20 @@ class CoolCommands(commands.Cog, name='Cool Commands'):
         '''
         message = await ctx.reply(
             f'Disclaimer from <@!{ctx.message.author.id}>: **The advice in the replied message should not supersede what a PAA says**'
+        )
+
+    @commands.command(aliases=['goku'])
+    async def gokuvs(self, ctx, *, arg='gen chen'):
+        '''
+        Send the result of Goku vs something
+        '''
+        arg_lower = arg.lower()
+        random.seed(sum([ord(char) for char in arg_lower]))
+        option = random.choice(
+            ('get destroyed by', 'destroy', 'get pummelled by', 'be embarrassed by', 'absolutely obliterate', 'totally bamboozle', 'utterly decimate', 'get confuzzled by', 'enjoy losing to')
+        )
+        await ctx.reply(
+            f'Goku would {option} {arg}{"".join(["!" for i in range(random.randrange(1,5))])}'
         )
 
     @commands.command(aliases=['cwc'])

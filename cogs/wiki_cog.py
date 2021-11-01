@@ -1,5 +1,7 @@
 import discord, requests, datetime, dateutil.relativedelta
 from discord.ext import commands
+from discord_slash import cog_ext, SlashContext
+guild_ids = [787069146852360233, 880161580443111455]
 
 class WikiCommands(commands.Cog, name='Wikipedia Commands'):
     '''Wikipedia commands'''
@@ -8,7 +10,10 @@ class WikiCommands(commands.Cog, name='Wikipedia Commands'):
         self.bot = bot
 
     def get_wiki(self, ctx, url, title, count):
-        count = int(count)
+        try:
+            count = int(count)
+        except ValueError:
+            return 'Count must be an integer'
         if count < 3:
             count = 3
         headers = {
@@ -70,7 +75,17 @@ class WikiCommands(commands.Cog, name='Wikipedia Commands'):
             count)
         for embed in embeds:
             await ctx.send(embed=embed)
-
+    
+    @cog_ext.cog_slash(name="wiki_most_viewed", guild_ids=guild_ids)
+    async def wiki_most_viewed(self, ctx: SlashContext, count='15'):
+        today = datetime.datetime.today() - datetime.timedelta(hours=32)
+        url = f"https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}"
+        embeds = self.get_wiki(
+            ctx, url,
+            f"Most Viewed Wikipedia Pages On {today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}",
+            count)
+        for embed in embeds:
+            await ctx.send(embed=embed)
 
     @commands.command(aliases=['wikim'])
     async def wikipedia_most_monthly(self, ctx, count='15'):

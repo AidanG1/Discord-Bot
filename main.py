@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 from keep_alive import keep_alive
 from replit import db
 from discord_components import DiscordComponents
+from discord_slash import SlashCommand, SlashContext
 
 load_dotenv()
 
@@ -14,7 +15,9 @@ intents.members = True
 
 bot = commands.Bot(command_prefix='^',
                    help_command=help_command,
-                   intents=intents)
+                   intents=intents, case_insensitive=True)
+slash = SlashCommand(bot)
+guild_ids = [787069146852360233, 880161580443111455]
 
 TOKEN = os.getenv('TOKEN')
 
@@ -351,8 +354,10 @@ async def userWordCount(ctx, user):
         word_message += f'The {db_key.split("_")[0]} count for {user} is {value}. \n'
     await ctx.send(word_message)
     await message.delete()
-    
 
+@slash.slash(name="get_code")
+async def slash_get_code(ctx: SlashContext, guild_ids=guild_ids):
+    await ctx.send('https://repl.it/@AidanGerber/Discord-Bot#main.py\nhttps://github.com/AidanG1/Discord-Bot')
 
 @bot.command(aliases=['code'])
 async def get_code(ctx):

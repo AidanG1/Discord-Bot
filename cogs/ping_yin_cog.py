@@ -1,5 +1,7 @@
 import discord, requests, datetime
 from discord.ext import commands
+from discord_slash import cog_ext, SlashContext
+guild_ids = [787069146852360233, 880161580443111455]
 
 
 class PingYinCommands(commands.Cog, name='Ping Yin Commands'):
@@ -34,7 +36,12 @@ class PingYinCommands(commands.Cog, name='Ping Yin Commands'):
         Get bot ping
         '''
         channel_id = discord.utils.get(ctx.guild.channels, name='general').id
-        print(channel_id)
+        latency = self.bot.latency
+        await ctx.send(f'Latency: {round(latency, 4)} seconds')
+
+    @cog_ext.cog_slash(name="ping", guild_ids=guild_ids)
+    async def slash_ping(self, ctx: SlashContext):
+        channel_id = discord.utils.get(ctx.guild.channels, name='general').id
         latency = self.bot.latency
         await ctx.send(f'Latency: {round(latency, 4)} seconds')
 

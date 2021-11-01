@@ -7,6 +7,8 @@ from replit import db
 from random import randrange
 from time import perf_counter
 from discord.errors import NotFound
+from discord_slash import cog_ext, SlashContext
+guild_ids = [787069146852360233, 880161580443111455]
 
 load_dotenv()
 
@@ -111,7 +113,7 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
         #         channel_message_sent = await msg.reply(embed=embed)
         #     else:
         #         channel_message_sent = await message_channel.send(embed=embed)
-        title = f'Anon message #{message_number}'
+        title = f'Anon Message #{message_number}'
         if vanon_boolean:
             channel_message_sent = await msg.reply(title)
         elif ranon_id != '':
@@ -148,11 +150,19 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
         '''
         await self.anon_message_function(self.bot, ctx, channel, arg, False, 0, '', '')
 
+    @cog_ext.cog_slash(name="anon_message", description='Send an anonymous message', guild_ids=guild_ids)
+    async def slash_anon_message(self, ctx: SlashContext, channel, *, arg):
+        await self.anon_message_function(self.bot, ctx, channel, arg, False, 0, '', '')
+
     @commands.command(aliases=['vanon'])
-    async def verified_anon_message(self, ctx, message_id, password, channel,*, arg):
+    async def verified_anon_message(self, ctx, message_id, password, channel, *, arg):
         '''
         Send a verified anonymous message to the same channel as a previous anonymous message
         '''
+        await self.anon_message_function(self.bot, ctx, channel, arg, True, message_id, password, '')
+
+    @cog_ext.cog_slash(name="verified_anon_message", description='Send a verified anonymous message', guild_ids=guild_ids)
+    async def slash_verified_anon_message(self, ctx: SlashContext, message_id, password, channel, *, arg):
         await self.anon_message_function(self.bot, ctx, channel, arg, True, message_id, password, '')
 
     @commands.command(aliases=['ranon'])
@@ -161,7 +171,10 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
         Send an anonymous message to the same channel as a previous anonymous message 
         '''
         await self.anon_message_function(self.bot, ctx, channel, arg, False, 0, '', message_id)
-
+    
+    @cog_ext.cog_slash(name="reply_anon_message", description='Send an anonymous message replying to a prevoius message', guild_ids=guild_ids)
+    async def slash_reply_anon_message(self, ctx: SlashContext, channel, message_id, *, arg):
+        await self.anon_message_function(self.bot, ctx, channel, arg, False, 0, '', message_id)
     @commands.command(aliases=['canon', 'anonc'])
     async def connect_anonymous(self, ctx, message_id):
         '''

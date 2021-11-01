@@ -120,6 +120,7 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         stocks = stocks.split(',')
         current_date = datetime.date.today()
         await ctx.send(f'https://api.wsj.net/api/kaavio/charts/big.chart?symb={stocks[0]}&size=3&style=350&comp={",".join(stocks[1:])}&startdate={current_date.month}%20{current_date.day}%20{current_date.year - 1}&enddate={current_date.month}%20{current_date.day}%20{current_date.year}')
+        
     @commands.command(aliases=['parik'])
     async def parik_patel_tweet(self,ctx):
         '''Get a tweet from Dr. Parik Patel, BA, CFA, ACCA Esq.'''
@@ -139,9 +140,17 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         Get Yahoo Finance Trending stocks list
         '''
         message = await ctx.send('loading...')
+        headers = {
+            'Host': 'query1.finance.yahoo.com',
+            'Origin': 'https://finance.yahoo.com',
+            'Referer': 'https://finance.yahoo.com/quote/APPH/options?date=1705622400&p=APPH',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0'
+            }
         r = requests.get(
-            f'https://query2.finance.yahoo.com/v1/finance/trending/US?count={count}'
-        ).json()['finance']['result'][0]['quotes']
+            f'https://query1.finance.yahoo.com/v1/finance/trending/US?count={count}', headers=headers
+        )
+        print(r.text)
+        r = r.json()['finance']['result'][0]['quotes']
         quotes = [quote['symbol'] for quote in r]
         yft_message = f'Top {count} trending items on Yahoo Finance: ' + ', '.join(
             quotes)[:-2]
