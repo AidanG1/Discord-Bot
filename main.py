@@ -133,10 +133,16 @@ async def on_message(message):
                 ticker = split_ticker[0]
                 graph_settings = split_ticker[1]
                 # numbers: 1: 10 day, 2: 2 day, 3: 5 day, 4: 1 month, 5: 2 month, 6: 3 month, 7: 6 month, 19: YTD, 8: 1 year, 9 : 2 year, 10: 3 year, 11: 4 year, 12: 5 year, 13: decade, 20: all time
+                day_dict = {'d':1, 'm': 30, 'q': 90, 'y': 365}
                 frequency = 1
-                if len(graph_settings) != 0 and int(graph_settings) <= 3:
-                    frequency = 6
-                await message.channel.send(f'https://api.wsj.net/api/kaavio/charts/big.chart?nosettings=1&symb={ticker}&uf=0&type=4&size=2&style=350&freq={frequency}&entitlementtoken=0c33378313484ba9b46b8e24ded87dd6&time={graph_settings}&rand=1111111&compidx=aaaaa%3a0&ma=3&maval=50&lf=2&lf2=4&lf3=0&height=444&width=579&mocktick=1')
+                days = 365
+                if len(graph_settings) != 0:
+                    days = int(graph_settings[:-1]) * day_dict[graph_settings[-1]]
+                    if days <= 10:
+                        frequency = 6
+                current_date = datetime.date.today()
+                start_date = current_date - datetime.timedelta(days=days)
+                await message.channel.send(f'https://api.wsj.net/api/kaavio/charts/big.chart?nosettings=1&symb={ticker}&uf=0&type=4&size=3&style=350&freq={frequency}&startdate={start_date.month}%20{start_date.day}%20{start_date.year}&enddate={current_date.month}%20{current_date.day+1}%20{current_date.year}&compidx=SP500&ma=3&maval=50&lf=2&lf2=0&lf3=0&height=510&width=720&mocktick=1')
             api_link = f'https://query2.finance.yahoo.com/v10/finance/quoteSummary/{ticker}?formatted=true&crumb=BriRho6N.D9&lang=en-US&region=US&modules=price%2CsummaryDetail&corsDomain=finance.yahoo.com'
             headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
             r = requests.get(api_link, headers=headers)
