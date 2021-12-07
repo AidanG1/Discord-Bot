@@ -112,13 +112,13 @@ class StockCommands(commands.Cog, name='Stock Commands'):
         await ctx.send('This is not financial advice: ' +
                        random.choice(phrases))
     
-    @commands.command(aliases=['comp_graph', 'graph'])
+    @commands.command(aliases=['comp_graph', 'graph','chart'])
     async def stock_graph_comp(self, ctx, *, stocks):
         '''
         Get a graph comparing multiple stocks split by comma
         '''
         stocks = stocks.split(',')
-        current_date = datetime.date.today()
+        current_date = datetime.date.today() + datetime.timedelta(days=2)
         await ctx.send(f'https://api.wsj.net/api/kaavio/charts/big.chart?symb={stocks[0]}&size=3&style=350&comp={",".join(stocks[1:])}&startdate={current_date.month}%20{current_date.day}%20{current_date.year - 1}&enddate={current_date.month}%20{current_date.day}%20{current_date.year}')
         
     @commands.command(aliases=['parik'])

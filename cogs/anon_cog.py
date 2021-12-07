@@ -19,6 +19,8 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
         self.bot = bot
 
     async def anon_message_function(self, bot, ctx, channel, message_text, vanon_boolean, vanon_id, vanon_password, ranon_id):
+        await ctx.send('Rice Bot anon messages have temporarily been disabled due to abuse.')
+        return 
         try:
             channel=int(channel)
         except ValueError:
@@ -142,6 +144,21 @@ class AnonCommands(commands.Cog, name='Anon Commands'):
                             color=discord.Color.from_rgb(
                                 colors[0], colors[1], colors[2]))
         await channel_message_sent.edit(content='', embed=embed)
+
+    @commands.command(aliases=['msearch'])
+    @commands.has_role('Admins')
+    async def message_dm_search(self, ctx, *, arg):
+        '''
+        Admin only command to search through dms due to abuse
+        '''
+        members = ctx.guild.members
+        for member in members:
+            channel = self.bot.get_channel(730839966472601622)
+            messages = await ctx.channel.history(limit=200).flatten()
+            for msg in messages:
+                if '2091' in msg.content:
+                    print(msg.content)
+        print(self.bot.private_channels)
 
     @commands.command(aliases=['anon', 'confess'])
     async def anon_message(self, ctx, channel, *, arg):
