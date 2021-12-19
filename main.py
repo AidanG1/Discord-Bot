@@ -213,6 +213,10 @@ async def on_message(message):
                                 current_message += f" Their after market change is **{post_market_change}** and the price is **${r['price']['postMarketPrice']['fmt']}**."
                     except KeyError:
                         pass
+                    db_stock_check = f'stock_check_{ticker}'
+                    if db_stock_check in db:
+                        current_message += f' The last time {ticker.upper()} was checked, the price was ${db[db_stock_check]}.'
+                    db[db_stock_check] = current_price
                     ticker_messages.append(
                         current_message
                     )
