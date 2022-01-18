@@ -239,8 +239,9 @@ class StockCommands(commands.Cog, name='Stock Commands'):
                                 color=color)
             image_url = soup.find(class_='py-1')
             if not isinstance(image_url, type(None)):
-                image_url = image_url['src']
-                embed.set_image(url=image_url)
+                if 'src' in image_url:
+                    image_url = image_url['src']
+                    embed.set_image(url=image_url)
             await ctx.send(embed=embed)
             # try:
             # profile = soup.find(class_='description')
